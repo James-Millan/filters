@@ -1,7 +1,5 @@
 use std::hash::{Hash};
 use rand::Rng;
-use std::f64;
-
 pub(crate) struct CountingBloomFilter {
     pub(crate) count_array: Vec<u8>,
     hash_functions: Vec<(u64,u64,u64)>,
@@ -34,7 +32,6 @@ impl CountingBloomFilter {
 
     // x is key to be hashed. l is binary log of filter size. a1,a2,b random u64s.
     fn hash(x: u64, l: u32, a1: u64, a2: u64, b: u64) -> u32 {
-        //return (((a1 + x) * (a2 + (x >> 32)) + b) >> (64 - l)) as usize
         let intermediate = (a1.wrapping_add(x)).wrapping_mul(a2.wrapping_add((x >> 32))).wrapping_add(b);
         let result = (intermediate) >> (64 - l);
         return result as u32
