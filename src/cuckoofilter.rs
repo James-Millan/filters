@@ -1,4 +1,4 @@
-use std::hash::{Hash, Hasher};
+use std::hash::{Hash};
 use fastmurmur3;
 use chrono::Utc;
 use rand::Rng;

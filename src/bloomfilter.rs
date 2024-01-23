@@ -1,19 +1,18 @@
 use std::hash::{Hash};
 use rand::Rng;
-use std::f64;
+#[path = "bitvector.rs"]
+mod bitvector;
 
 pub(crate) struct BloomFilter {
-    pub(crate) bit_array: Vec<bool>,
+    pub(crate) bit_array: bitvector::BitVector,
     hash_functions: Vec<(u64,u64,u64)>,
     size: u64,
     l: u32,
 }
-
-
 impl BloomFilter {
     pub(crate) fn new(size: u64, num_hashes: usize) -> BloomFilter {
         BloomFilter {
-            bit_array: vec![false; size as usize],
+            bit_array: bitvector::BitVector::new(size),
             hash_functions: Self::generate_hash_functions(num_hashes, size),
             size,
             l: 64 - (size - 1).leading_zeros(),
@@ -48,21 +47,22 @@ impl BloomFilter {
             return
         }
         for hash_function in &self.hash_functions {
-            let index: usize = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index : u64 = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             // println!("{}", index);
             // println!("{}", Self::hash( key, self.l, hash_function.0, hash_function.1, hash_function.2) );
-            self.bit_array[index] = true;
+            self.bit_array.insert(index);
         }
     }
 
-    pub(crate) fn member(&self, key: u64) -> bool {
+    pub(crate) fn member(&mut self, key: u64) -> bool {
         if key >= self.size {
             return false
         }
         for hash_function in &self.hash_functions {
-            let index: usize = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: u64 = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             //println!("{}", index);
-            if !self.bit_array[index] {
+            let mem = self.bit_array.clone().member(index);
+            if !mem {
                 return false;
             }
         }

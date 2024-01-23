@@ -1,6 +1,8 @@
 mod bloomfilter;
 mod cuckoofilter;
 mod countingbloomfilter;
+mod xorfilter;
+mod bitvector;
 
 extern crate rand;
 use rand::Rng;
