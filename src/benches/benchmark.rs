@@ -24,7 +24,7 @@ mod tests {
 
     #[test]
     fn test_bloom_filter() {
-        let mut bloomfilter = BloomFilter::new(10000, 6);
+        let mut bloomfilter = BloomFilter::new(10000, 0.01);
         for i in 0..1000{
             bloomfilter.insert(i);
             assert_eq!(bloomfilter.member(i), true);
@@ -32,7 +32,7 @@ mod tests {
     }
     #[test]
     fn test_cuckoo_filter() {
-        let mut cuckoofilter = crate::cuckoofilter::CuckooFilter::new(10000, 100);
+        let mut cuckoofilter = crate::cuckoofilter::CuckooFilter::new(10000, 100, 5);
         for i in 0..1000{
             cuckoofilter.insert(i);
             assert_eq!(cuckoofilter.member(i), true);
@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_counting_bloom_filter() {
-        let mut countingbloomfilter = crate::countingbloomfilter::CountingBloomFilter::new(10000, 6);
+        let mut countingbloomfilter = crate::countingbloomfilter::CountingBloomFilter::new(10000, 0.01);
         for i in 0..1000{
             countingbloomfilter.insert(i);
             assert_eq!(countingbloomfilter.member(i), true);
@@ -51,7 +51,7 @@ mod tests {
 fn bench_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_create", |b| {
         b.iter(|| {
-            let mut bloom_filter = BloomFilter::new(100000, 6);
+            let mut bloom_filter = BloomFilter::new(100000, 0.01);
             //stop it being optimized by the compiler
             black_box(bloom_filter);
         });
@@ -60,7 +60,7 @@ fn bench_bloom_filter_create(c: &mut Criterion) {
 
 fn bench_bloom_filter_insert(c: &mut Criterion) {
     let sample_size = 1000000000;
-    let bloom_filter = RefCell::new(BloomFilter::new(sample_size, 100));
+    let bloom_filter = RefCell::new(BloomFilter::new(sample_size, 0.01));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -77,7 +77,7 @@ fn bench_bloom_filter_insert(c: &mut Criterion) {
 fn bench_cuckoo_filter_create(c: &mut Criterion) {
     c.bench_function("bench_cuckoo_filter_create", |b| {
         b.iter(|| {
-            let mut cuckoo_filter = CuckooFilter::new(100000, 6);
+            let mut cuckoo_filter = CuckooFilter::new(100000, 6, 5);
             //stop it being optimized by the compiler
             black_box(cuckoo_filter);
         });
@@ -85,8 +85,8 @@ fn bench_cuckoo_filter_create(c: &mut Criterion) {
 }
 
 fn bench_cuckoo_filter_insert(c: &mut Criterion) {
-    let sample_size = 1000000000;
-    let cuckoo_filter = RefCell::new(CuckooFilter::new(sample_size, 100));
+    let sample_size = 100000000;
+    let cuckoo_filter = RefCell::new(CuckooFilter::new(sample_size/4, 100, 5));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -103,7 +103,7 @@ fn bench_cuckoo_filter_insert(c: &mut Criterion) {
 fn bench_counting_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_counting_bloom_filter_create", |b| {
         b.iter(|| {
-            let mut counting_bloom__filter = CountingBloomFilter::new(100000, 6);
+            let mut counting_bloom__filter = CountingBloomFilter::new(100000, 0.01);
             //stop it being optimized by the compiler
             black_box(counting_bloom__filter);
         });
@@ -112,7 +112,7 @@ fn bench_counting_bloom_filter_create(c: &mut Criterion) {
 
 fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
     let sample_size = 1000000000;
-    let counting_bloom_filter = RefCell::new(CountingBloomFilter::new(sample_size, 100));
+    let counting_bloom_filter = RefCell::new(CountingBloomFilter::new(sample_size, 0.01));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;

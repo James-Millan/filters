@@ -1,7 +1,11 @@
 use std::hash::{Hash};
 use rand::Rng;
+use std::f64;
 #[path = "bitvector.rs"]
 mod bitvector;
+
+#[path = "utils.rs"]
+mod utils;
 
 pub(crate) struct BloomFilter {
     pub(crate) bit_array: bitvector::BitVector,
@@ -10,7 +14,12 @@ pub(crate) struct BloomFilter {
     l: u32,
 }
 impl BloomFilter {
-    pub(crate) fn new(size: u64, num_hashes: usize) -> BloomFilter {
+    pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> BloomFilter {
+        let size: u64 = ((-1.0 * (expected_inserts as f64)).ceil()
+            * false_positive_rate.ln() / 2_f64.ln().powf(2.0)).ceil() as u64 ;
+        let num_hashes = (size / ((expected_inserts as f64) * 2_f64.ln()) as u64 ) as usize;
+
+
         BloomFilter {
             bit_array: bitvector::BitVector::new(size),
             hash_functions: Self::generate_hash_functions(num_hashes, size),
@@ -27,18 +36,12 @@ impl BloomFilter {
             let a1: u64 = rng.gen_range(1..=u64::MAX );
             let a2: u64 = rng.gen_range(1..=u64::MAX);
             let b: u64 = rng.gen_range(1..=u64::MAX);
-
-
             hash_functions.push((a1,a2,b));
         }
         return hash_functions;
     }
 
-    // x is key to be hashed. l is binary log of filter size. a1,a2,b random u64s.
-    fn hash(x: u64, l: u32, a1: u64, a2: u64, b: u64) -> u32 {
-        //return (((a1 + x) * (a2 + (x >> 32)) + b) >> (64 - l)) as usize
-        return ((a1.wrapping_add(x)).wrapping_mul(a2.wrapping_add((x >> 32))).wrapping_add(b) >> (64 - l)) as u32;
-    }
+
 
     // insert hashes the key for all hash functions and sets them to be true.
     // requires a mutable reference to itself. and a reference to the key.
@@ -47,7 +50,7 @@ impl BloomFilter {
             return
         }
         for hash_function in &self.hash_functions {
-            let index : u64 = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
+            let index : u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             // println!("{}", index);
             // println!("{}", Self::hash( key, self.l, hash_function.0, hash_function.1, hash_function.2) );
             self.bit_array.insert(index);
@@ -59,7 +62,7 @@ impl BloomFilter {
             return false
         }
         for hash_function in &self.hash_functions {
-            let index: u64 = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
+            let index: u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             //println!("{}", index);
             let mem = self.bit_array.clone().member(index);
             if !mem {
@@ -73,9 +76,9 @@ impl BloomFilter {
 }
 
 fn main() {
-    let size = 100;
-    let num_hashes = 3;
-    let mut bloom_filter = BloomFilter::new(size, num_hashes);
+    let num_inserts = 100;
+    let fpr = 0.01;
+    let mut bloom_filter = BloomFilter::new(num_inserts, fpr);
 
     bloom_filter.insert(23);
     bloom_filter.insert(2);

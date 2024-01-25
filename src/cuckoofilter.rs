@@ -2,10 +2,15 @@ use std::hash::{Hash};
 use fastmurmur3;
 use chrono::Utc;
 use rand::Rng;
+use crate::utils;
+
+// TODO buckets properly. not just of size 1.
+// deletions
 
 pub(crate) struct CuckooFilter {
-    pub(crate) buckets: Vec<u64>,
+    pub(crate) buckets: Vec<Vec<u64>>,
     bucket_count: usize,
+    bucket_size: usize,
     max_kicks: usize,
     l: u32,
     hash_coefficients: (u64,u64,u64),
@@ -13,10 +18,11 @@ pub(crate) struct CuckooFilter {
 }
 
 impl CuckooFilter {
-    pub(crate) fn new(bucket_count: usize, max_kicks: usize) -> Self {
+    pub(crate) fn new(bucket_count: usize, max_kicks: usize, bucket_size: usize) -> Self {
         CuckooFilter {
-            buckets: vec![0; bucket_count],
+            buckets: vec![vec![0; bucket_size]; bucket_count],
             bucket_count,
+            bucket_size,
             max_kicks,
             l: 64 - (bucket_count - 1).leading_zeros(),
             hash_coefficients: Self::get_hash_coefficients(),
@@ -38,62 +44,80 @@ impl CuckooFilter {
         //return murmur3_x64_128(&mut b"{key}", seed).unwrap() as u32;
     }
 
-    fn hash1(x: u64, l: u32, a1: u64, a2: u64, b: u64) -> u32 {
-        let intermediate = (a1.wrapping_add(x)).wrapping_mul(a2.wrapping_add((x >> 32))).wrapping_add(b);
-        let result = (intermediate) >> (64 - l);
-        return result as u32;
-    }
+
 
     fn hash2(&self, i_1: u32, f: u32) -> u32 {
-        return i_1 ^ Self::hash1(f as u64, self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2);
+        return i_1 ^ utils::hash(f as u64, self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2);
     }
 
     pub(crate) fn insert(&mut self, key: u64) -> bool {
-        let f = Self::fingerprint(key);
-        let i_1 = Self::hash1(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
-        let i_2 = Self::hash2(self,i_1, f) % self.bucket_count as u32;
+        let mut f = Self::fingerprint(key) as u64;
+        let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
+        let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
 
-        if self.buckets[i_1 as usize] != 0 {
-            if  self.buckets[i_2 as usize] != 0 {
-                // Both buckets are occupied, perform cuckoo eviction
-                for _ in 0..self.max_kicks {
-                    let random_index = if rand::random() { i_1 } else { i_2 };
-                    let kicked_key = std::mem::replace(&mut self.buckets[random_index as usize], key);
-
-                    let newf = Self::fingerprint(kicked_key);
-                    let newi_1 = Self::hash1(kicked_key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2);
-                    let newi_2 = Self::hash2(self, newi_1, newf);
-
-                    if random_index == i_1 {
-                        if newi_2 != i_1 && self.buckets[newi_2 as usize] == 0 {
-                            self.buckets[i_1 as usize] = 0;
-                            self.buckets[newi_2 as usize] = kicked_key;
-                            return true;
-                        }
-                    } else {
-                        if newi_1 != i_2 && self.buckets[newi_1 as usize] == 0 {
-                            self.buckets[i_2 as usize] = 0;
-                            self.buckets[newi_1 as usize] = kicked_key;
-                            return true;
-                        }
-                    }
-                }
-                return false; // Failed to evict after maximum kicks
-            } else {
-                self.buckets[i_2 as usize] = key;
+        // Try insert in bucket i_1
+        for j in 0..self.bucket_size {
+            if self.buckets[i_1 as usize][j] == 0 {
+                self.buckets[i_1 as usize][j] = f as u64;
                 return true;
             }
-        } else {
-            self.buckets[i_1 as usize] = key;
-            return true;
         }
+
+        // Try insert in bucket i_2
+        for j in 0..self.bucket_size {
+            if self.buckets[i_2 as usize][j] == 0 {
+                self.buckets[i_2 as usize][j] = f as u64;
+                return true;
+            }
+        }
+        // Both buckets are occupied, perform cuckoo eviction
+        let random_bucket = if rand::random() { i_1 } else { i_2 };
+        for _ in 0..self.max_kicks {
+            let mut rng = rand::thread_rng();
+            let random_index = rng.gen_range(0..=self.bucket_size);
+            let kicked_key = std::mem::replace(&mut self.buckets[random_bucket as usize][random_index], f as u64);
+            f = kicked_key;
+            let new_i = random_bucket ^ utils::hash(f as u64 ,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2);
+
+            // try inserting kicked_key into new_i
+            for j in 0..self.bucket_size {
+                if self.buckets[new_i as usize][j] == 0 {
+                    self.buckets[new_i as usize][j] = f as u64;
+                    return true;
+                }
+            }
+        }
+        // Failed to evict after maximum kicks
+        return false;
     }
 
     pub(crate) fn member(&self, key: u64) -> bool {
-        let f = Self::fingerprint(key);
-        let i_1 = Self::hash1(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
-        let i_2 = Self::hash2(self,i_1, f) % self.bucket_count as u32;
-        return self.buckets[i_1 as usize] == key || self.buckets[i_2 as usize] == key
+        let f = Self::fingerprint(key) as u64;
+        let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
+        let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
+        for j in 0..self.bucket_size {
+            if self.buckets[i_1 as usize][j] == f || self.buckets[i_2 as usize][j] == f {
+                return true
+            }
+        }
+        return false;
+    }
+
+    pub(crate) fn delete(&mut self, key: u64) -> bool {
+        let f = Self::fingerprint(key) as u64;
+        let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
+        let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
+        for j in 0..self.bucket_size {
+            if self.buckets[i_1 as usize][j] == f {
+                self.buckets[i_1 as usize][j] = 0;
+                return true;
+            }
+            else if self.buckets[i_2 as usize][j] == f {
+                self.buckets[i_2 as usize][j] = 0;
+                return true;
+            }
+        }
+        return false;
     }
 }
 

@@ -1,5 +1,8 @@
 use std::hash::{Hash};
 use rand::Rng;
+use crate::bloomfilter::BloomFilter;
+use crate::utils;
+
 pub(crate) struct CountingBloomFilter {
     pub(crate) count_array: Vec<u8>,
     hash_functions: Vec<(u64,u64,u64)>,
@@ -9,7 +12,10 @@ pub(crate) struct CountingBloomFilter {
 
 
 impl CountingBloomFilter {
-    pub(crate) fn new(size: u64, num_hashes: usize) -> CountingBloomFilter {
+    pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> CountingBloomFilter {
+        let size: u64 = ((-1.0 * (expected_inserts as f64)).ceil()
+            * false_positive_rate.ln() / 2_f64.ln().powf(2.0)).ceil() as u64;
+        let num_hashes = (size / ((expected_inserts as f64) * 2_f64.ln()) as u64 ) as usize;
         CountingBloomFilter {
             count_array: vec![0; size as usize],
             hash_functions: Self::generate_hash_functions(num_hashes, size),
@@ -30,12 +36,7 @@ impl CountingBloomFilter {
         return hash_functions;
     }
 
-    // x is key to be hashed. l is binary log of filter size. a1,a2,b random u64s.
-    fn hash(x: u64, l: u32, a1: u64, a2: u64, b: u64) -> u32 {
-        let intermediate = (a1.wrapping_add(x)).wrapping_mul(a2.wrapping_add((x >> 32))).wrapping_add(b);
-        let result = (intermediate) >> (64 - l);
-        return result as u32
-    }
+
 
     // insert hashes the key for all hash functions and sets them to be true.
     // requires a mutable reference to itself. and a reference to the key.
@@ -44,7 +45,7 @@ impl CountingBloomFilter {
             return
         }
         for hash_function in &self.hash_functions {
-            let index: usize = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
             self.count_array[index] = self.count_array[index].saturating_add(1);
         }
     }
@@ -54,7 +55,7 @@ impl CountingBloomFilter {
             return false
         }
         for hash_function in &self.hash_functions {
-            let index: usize = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
             if self.count_array[index] <= 0 {
                 return false;
             }
@@ -67,7 +68,7 @@ impl CountingBloomFilter {
             return
         }
         for hash_function in &self.hash_functions {
-            let index: usize = (Self::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
             self.count_array[index] = self.count_array[index].saturating_sub(1);
         }
 
