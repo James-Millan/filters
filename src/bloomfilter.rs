@@ -9,15 +9,15 @@ mod utils;
 
 pub(crate) struct BloomFilter {
     pub(crate) bit_array: bitvector::BitVector,
-    hash_functions: Vec<(u64,u64,u64)>,
+    pub(crate) hash_functions: Vec<(u64,u64,u64)>,
     size: u64,
     l: u32,
 }
 impl BloomFilter {
     pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> BloomFilter {
-        let size: u64 = ((-1.0 * (expected_inserts as f64)).ceil()
-            * false_positive_rate.ln() / 2_f64.ln().powf(2.0)).ceil() as u64 ;
-        let num_hashes = (size / ((expected_inserts as f64) * 2_f64.ln()) as u64 ) as usize;
+        let size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
+            * false_positive_rate.log2() + 0.5) as u64 ;
+        let num_hashes = (-false_positive_rate.log2() + 0.5) as usize;
 
 
         BloomFilter {

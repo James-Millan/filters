@@ -1,7 +1,9 @@
 use std::hash::{Hash};
 use rand::Rng;
 use crate::bloomfilter::BloomFilter;
-use crate::utils;
+
+#[path="utils.rs"]
+mod utils;
 
 pub(crate) struct CountingBloomFilter {
     pub(crate) count_array: Vec<u8>,
@@ -13,9 +15,9 @@ pub(crate) struct CountingBloomFilter {
 
 impl CountingBloomFilter {
     pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> CountingBloomFilter {
-        let size: u64 = ((-1.0 * (expected_inserts as f64)).ceil()
-            * false_positive_rate.ln() / 2_f64.ln().powf(2.0)).ceil() as u64;
-        let num_hashes = (size / ((expected_inserts as f64) * 2_f64.ln()) as u64 ) as usize;
+        let size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
+            * false_positive_rate.log2() + 0.5) as u64 ;
+        let num_hashes = (-false_positive_rate.log2() + 0.5) as usize;
         CountingBloomFilter {
             count_array: vec![0; size as usize],
             hash_functions: Self::generate_hash_functions(num_hashes, size),

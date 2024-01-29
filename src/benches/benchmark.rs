@@ -5,11 +5,15 @@ use criterion::black_box;
 use criterion::criterion_group;
 use criterion::criterion_main;
 use bloomfilter::BloomFilter;
+use crate::blockedbloomfilter::BlockedBloomFilter;
 use crate::countingbloomfilter::CountingBloomFilter;
 use crate::cuckoofilter::CuckooFilter;
 
 #[path = "../bloomfilter.rs"]
 mod bloomfilter;
+
+#[path = "../blockedbloomfilter.rs"]
+mod blockedbloomfilter;
 
 #[path = "../cuckoofilter.rs"]
 mod cuckoofilter;
@@ -17,6 +21,8 @@ mod cuckoofilter;
 #[path = "../countingbloomfilter.rs"]
 mod countingbloomfilter;
 
+#[path = "../registeralignedbloomfilter.rs"]
+mod registeralignedbloomfilter;
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +38,7 @@ mod tests {
     }
     #[test]
     fn test_cuckoo_filter() {
-        let mut cuckoofilter = crate::cuckoofilter::CuckooFilter::new(10000, 100, 5);
+        let mut cuckoofilter = crate::cuckoofilter::CuckooFilter::new(10000, 100, 8);
         for i in 0..1000{
             cuckoofilter.insert(i);
             assert_eq!(cuckoofilter.member(i), true);
@@ -77,7 +83,7 @@ fn bench_bloom_filter_insert(c: &mut Criterion) {
 fn bench_cuckoo_filter_create(c: &mut Criterion) {
     c.bench_function("bench_cuckoo_filter_create", |b| {
         b.iter(|| {
-            let mut cuckoo_filter = CuckooFilter::new(100000, 6, 5);
+            let mut cuckoo_filter = CuckooFilter::new(958506, 100, 8);
             //stop it being optimized by the compiler
             black_box(cuckoo_filter);
         });
@@ -86,7 +92,7 @@ fn bench_cuckoo_filter_create(c: &mut Criterion) {
 
 fn bench_cuckoo_filter_insert(c: &mut Criterion) {
     let sample_size = 100000000;
-    let cuckoo_filter = RefCell::new(CuckooFilter::new(sample_size/4, 100, 5));
+    let cuckoo_filter = RefCell::new(CuckooFilter::new(10000000, 10000, 8));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -126,6 +132,94 @@ fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
-                bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create);
+fn bench_blocked_bloom_filter_create(c: &mut Criterion) {
+    c.bench_function("bench_blocked_bloom_filter_create", |b| {
+        b.iter(|| {
+            let mut blocked_bloom_filter = BlockedBloomFilter::new(100000, 64, 0.01);
+            //stop it being optimized by the compiler
+            black_box(blocked_bloom_filter);
+        });
+    });
+}
+
+fn bench_blocked_bloom_filter_insert(c: &mut Criterion) {
+    let sample_size = 1000000000;
+    let mut blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(100000,
+                                                                        64, 0.01));
+    //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
+    let mut i = 0;
+    c.bench_function("bench_blocked_bloom_filter_insert", |b| {
+        b.iter(|| {
+            blocked_bloom_filter.borrow_mut().insert(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+fn bench_blocked_bloom_filter_query(c: &mut Criterion) {
+    let sample_size = 1000000000;
+    let mut blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(100000,
+                                                                        64, 0.01));
+    //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
+
+    for j in 0..100000 {
+        blocked_bloom_filter.borrow_mut().insert(j);
+    }
+
+    let mut i = 0;
+    c.bench_function("bench_blocked_bloom_filter_query", |b| {
+        b.iter(|| {
+            blocked_bloom_filter.borrow_mut().member(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+fn bench_register_aligned_bloom_filter_create(c: &mut Criterion) {
+    c.bench_function("bench_register_aligned_bloom_filter_create", |b| {
+        b.iter(|| {
+            let mut register_aligned_bloom_filter = registeralignedbloomfilter::
+            RegisterAlignedBloomFilter::new(100000, 64, 0.01);
+            //stop it being optimized by the compiler
+            black_box(register_aligned_bloom_filter);
+        });
+    });
+}
+
+fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
+    let sample_size = 1000000;
+    let mut register_aligned_bloom_filter = RefCell::new(registeralignedbloomfilter
+    ::RegisterAlignedBloomFilter::new(100000, 64, 0.01));
+
+    //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
+    let mut i = 0;
+    c.bench_function("bench_register_aligned_bloom_filter_insert", |b| {
+        b.iter(|| {
+            register_aligned_bloom_filter.borrow_mut().insert(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+fn setup(c: &mut Criterion) {
+    let mut group = c.benchmark_group("benches");
+    // Configure Criterion.rs to detect smaller differences and increase sample size to improve
+    // precision and counteract the resulting noise.
+    group.sample_size(100000);
+    // group.finish();
+}
+
+criterion_group!(current_benches, bench_cuckoo_filter_create, bench_cuckoo_filter_insert);
+criterion_group!(benches,
+    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
+                bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
+   //         bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
+   //         bench_register_aligned_bloom_filter_insert);
+    );
 criterion_main!(benches);
