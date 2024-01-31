@@ -37,7 +37,6 @@ impl CuckooFilter {
     }
     
     fn fingerprint(key: u64) -> u8 {
-        let seed = Utc::now().timestamp() as u32;
         return fastmurmur3::hash(&key.to_ne_bytes()) as u8;
         //return murmur3_x64_128(&mut b"{key}", seed).unwrap() as u32;
     }
