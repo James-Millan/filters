@@ -23,6 +23,11 @@ mod countingbloomfilter;
 
 #[path = "../registeralignedbloomfilter.rs"]
 mod registeralignedbloomfilter;
+#[path = "../xorfilter.rs"]
+mod xorfilter;
+
+#[path = "../threewisebinaryfusefilter.rs"]
+mod binaryfusefiter3;
 
 #[cfg(test)]
 mod tests {
@@ -207,6 +212,73 @@ fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
     });
 }
 
+fn bench_xor_filter_create(c: &mut Criterion) {
+    c.bench_function("bench_xor_filter_create", |b| {
+        let mut keys = Vec::new();
+        for i in 0..100000 {
+            keys.push(i);
+        }
+        b.iter(|| {
+            let mut xor_filter = xorfilter::XorFilter::new(keys.clone());
+            //stop it being optimized by the compiler
+            black_box(xor_filter);
+        });
+    });
+}
+
+fn bench_xor_filter_query(c: &mut Criterion) {
+    let mut keys = Vec::new();
+    for i in 0..100000 {
+        keys.push(i);
+    }
+    let mut xor_filter = RefCell::new(xorfilter::XorFilter::new(keys.clone()));
+
+    //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
+    let mut i = 0;
+    c.bench_function("bench_xor_filter_member", |b| {
+        b.iter(|| {
+            xor_filter.borrow_mut().member(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+fn bench_binary_fuse_filter_create(c: &mut Criterion) {
+    c.bench_function("bench_binary_fuse_filter_create", |b| {
+        let mut keys = Vec::new();
+        for i in 0..100000 {
+            keys.push(i);
+        }
+        b.iter(|| {
+            let mut binary_fuse_filter = binaryfusefiter3::BinaryFuseFilter::new(keys.clone());
+            //stop it being optimized by the compiler
+            black_box(binary_fuse_filter);
+        });
+    });
+}
+
+fn bench_binary_fuse_filter_query(c: &mut Criterion) {
+    let mut keys = Vec::new();
+    for i in 0..100000 {
+        keys.push(i);
+    }
+    let mut binary_fuse_filter = RefCell::new(binaryfusefiter3::BinaryFuseFilter::new(keys.clone()));
+    let mut i = 0;
+    c.bench_function("bench_binary_fuse_filter_member", |b| {
+        b.iter(|| {
+            binary_fuse_filter.borrow_mut().member(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+
+
+
 fn setup(c: &mut Criterion) {
     let mut group = c.benchmark_group("benches");
     // Configure Criterion.rs to detect smaller differences and increase sample size to improve
@@ -215,11 +287,11 @@ fn setup(c: &mut Criterion) {
     // group.finish();
 }
 
-criterion_group!(current_benches, bench_cuckoo_filter_create, bench_cuckoo_filter_insert);
+criterion_group!(current_benches, bench_binary_fuse_filter_query);
 criterion_group!(benches,
     setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
                 bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
    //         bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
    //         bench_register_aligned_bloom_filter_insert);
     );
-criterion_main!(benches);
+criterion_main!(current_benches);

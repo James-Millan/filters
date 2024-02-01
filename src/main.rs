@@ -7,6 +7,7 @@ mod blockedbloomfilter;
 mod utils;
 mod dleftcountingfilter;
 mod registeralignedbloomfilter;
+mod threewisebinaryfusefilter;
 
 extern crate rand;
 
@@ -18,26 +19,16 @@ use crate::xorfilter::XorFilter;
 
 fn main() {
     let mut keys = Vec::new();
-    let mut rng = rand::thread_rng();
-    let mut hash_functions = Vec::new();
-
-    for _ in 0..=2 {
-        let a1: u64 = rng.gen_range(1..=u64::MAX );
-        let a2: u64 = rng.gen_range(1..=u64::MAX);
-        let b: u64 = rng.gen_range(1..=u64::MAX);
-        hash_functions.push((a1,a2,b));
-    }
 
     for i in 0..=1000000 {
-        let hash = hash2(i, hash_functions.clone());
         //list.push(XorFilter::fingerprint(i));
         keys.push(i);
     }
 
-    let mut xorfilter = XorFilter::new(keys);
+    let mut binaryfusefilter = threewisebinaryfusefilter::BinaryFuseFilter::new(keys);
 
     for j in 0..=100000 {
-        println!("Contains '{}': {}", j, xorfilter.member(j));
+        println!("Contains '{}': {}", j, binaryfusefilter.member(j));
     }
 }
 
