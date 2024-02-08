@@ -1,8 +1,8 @@
 #[path = "bloomfilter.rs"]
 mod bloomfilter;
 use std::f64;
-use std::ptr::null;
-use bloomfilter::BloomFilter;
+
+
 use rand::Rng;
 use slab::Slab;
 
@@ -27,9 +27,9 @@ impl BlockedBloomFilter {
         let num_blocks = (size + ((block_size*8) - 1) as u64) / (block_size*8) as u64;
 
         let mut rng = rand::thread_rng();
-        let a1 = rng.gen_range(1..=u64::MAX);
-        let a2 = rng.gen_range(1..=u64::MAX);
-        let b = rng.gen_range(1..=u64::MAX);
+        let _a1 = rng.gen_range(1..=u64::MAX);
+        let _a2 = rng.gen_range(1..=u64::MAX);
+        let _b = rng.gen_range(1..=u64::MAX);
         let pair = (64 - (num_blocks - 1).leading_zeros(), 64 - (block_size - 1).leading_zeros());
         BlockedBloomFilter {
             size,
@@ -58,7 +58,7 @@ impl BlockedBloomFilter {
     fn generate_blocks(num_blocks: u64, block_size: usize) -> Slab<Vec<u8>> {
         let mut slab: Slab<Vec<u8>> = Slab::new();
         let n = num_blocks;
-        for i in 0..=n {
+        for _i in 0..=n {
             let block = vec![0; block_size];
             slab.insert(block);
         }

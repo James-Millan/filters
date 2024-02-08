@@ -7,27 +7,35 @@ mod blockedbloomfilter;
 mod utils;
 mod dleftcountingfilter;
 mod registeralignedbloomfilter;
-mod threewisebinaryfusefilter;
+mod threewisebinaryfusefilter32;
+mod simdblockedbloomfilter;
+mod fourwisebinaryfusefilter;
+mod threewisebinaryfusefilter16;
+mod threewisebinaryfusefilter8;
 
 extern crate rand;
 
-use std::cell::RefCell;
+
 use rand::Rng;
-use crate::cuckoofilter::CuckooFilter;
-use crate::utils::hash;
-use crate::xorfilter::XorFilter;
+
+use crate::utils::{hash, perfect_hashing};
+
 
 fn main() {
     let mut keys = Vec::new();
 
-    for i in 0..=1000000 {
+    for i in 0..=100000 {
         //list.push(XorFilter::fingerprint(i));
         keys.push(i);
     }
-
-    let mut binaryfusefilter = threewisebinaryfusefilter::BinaryFuseFilter::new(keys);
+    //let xorfilter = xorfilter::XorFilter::new(keys);
+    //let perfect = perfect_hashing(&keys);
+    let binaryfusefilter = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys);
 
     for j in 0..=100000 {
+        println!("Contains '{}': {}", j, binaryfusefilter.member(j));
+    }
+    for j in 100000..=1000000 {
         println!("Contains '{}': {}", j, binaryfusefilter.member(j));
     }
 }

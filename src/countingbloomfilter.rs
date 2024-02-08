@@ -1,6 +1,6 @@
-use std::hash::{Hash};
+
 use rand::Rng;
-use crate::bloomfilter::BloomFilter;
+
 
 #[path="utils.rs"]
 mod utils;
@@ -26,7 +26,7 @@ impl CountingBloomFilter {
         }
     }
 
-    fn generate_hash_functions(n: usize, m: u64) -> Vec<(u64, u64,u64)> {
+    fn generate_hash_functions(n: usize, _m: u64) -> Vec<(u64, u64,u64)> {
         let mut rng = rand::thread_rng();
         let mut hash_functions = Vec::new();
         for _ in 0..n {

@@ -1,7 +1,9 @@
-use std::hash::{Hash};
+
 use fastmurmur3;
-use chrono::Utc;
+
 use rand::Rng;
+use crate::cuckoofilter::utils::log_base;
+
 #[path="utils.rs"]
 mod utils;
 
@@ -22,7 +24,7 @@ impl CuckooFilter {
             bucket_count,
             bucket_size,
             max_kicks,
-            l: 64 - (bucket_count - 1).leading_zeros(),
+            l: log_base(bucket_count as f64, 2f64) as u32,
             hash_coefficients: Self::get_hash_coefficients(),
             full: false
         }
@@ -57,7 +59,7 @@ impl CuckooFilter {
         return false;
     }
 
-    pub(crate) fn insert(&mut self, key: u64) -> bool {
+    pub fn insert(&mut self, key: u64) -> bool {
         let mut f = Self::fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
@@ -75,7 +77,7 @@ impl CuckooFilter {
 
         // Both buckets are occupied, perform cuckoo eviction
         let random_bucket = if rand::random() { i_1 } else { i_2 };
-        for count in 0..self.max_kicks {
+        for _count in 0..self.max_kicks {
             let mut rng = rand::thread_rng();
             let random_index = rng.gen_range(0..=self.bucket_size - 1);
             let kicked_key = std::mem::replace(&mut self.buckets[random_bucket as usize][random_index], f as u8);
@@ -91,10 +93,11 @@ impl CuckooFilter {
         }
         // Failed to evict after maximum kicks
         //println!("failed to insert.");
+        self.full = true;
         return false;
     }
 
-    pub(crate) fn member(&self, key: u64) -> bool {
+    pub fn member(&self, key: u64) -> bool {
         let f = Self::fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;

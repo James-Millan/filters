@@ -26,9 +26,9 @@ impl RegisterAlignedBloomFilter {
         let num_blocks = (size + (block_size - 1) as u64) / block_size as u64;
 
         let mut rng = rand::thread_rng();
-        let a1 = rng.gen_range(1..=u64::MAX);
-        let a2 = rng.gen_range(1..=u64::MAX);
-        let b = rng.gen_range(1..=u64::MAX);
+        let _a1 = rng.gen_range(1..=u64::MAX);
+        let _a2 = rng.gen_range(1..=u64::MAX);
+        let _b = rng.gen_range(1..=u64::MAX);
         let pair = (64 - (num_blocks - 1).leading_zeros(), 64 - (block_size - 1).leading_zeros());
         RegisterAlignedBloomFilter {
             size,
@@ -54,10 +54,10 @@ impl RegisterAlignedBloomFilter {
         }
         return hash_functions;
     }
-    fn generate_blocks(num_blocks: u64, block_size: usize) -> Slab<u64> {
+    fn generate_blocks(num_blocks: u64, _block_size: usize) -> Slab<u64> {
         let mut slab: Slab<u64> = Slab::new();
         let n = num_blocks;
-        for i in 0..=n {
+        for _i in 0..=n {
             let block: u64 = 0;
             slab.insert(block);
         }
@@ -81,7 +81,7 @@ impl RegisterAlignedBloomFilter {
             let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
                                            hash_function.2) % self.block_size as u32) as u64;
 
-            mask |= (1 << index);
+            mask |= 1 << index;
         }
         *block |= mask;
     }
@@ -95,7 +95,7 @@ impl RegisterAlignedBloomFilter {
         for hash_function in &self.hash_functions {
             let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
                                            hash_function.2) % self.block_size as u32) as u64;
-            mask |= (1 << index);
+            mask |= 1 << index;
         }
         return (*block & mask) == mask;
     }

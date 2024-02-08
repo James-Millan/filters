@@ -1,4 +1,4 @@
-use std::hash::{Hash};
+
 use rand::Rng;
 use std::f64;
 #[path = "bitvector.rs"]
@@ -28,7 +28,7 @@ impl BloomFilter {
         }
     }
 
-    fn generate_hash_functions(n: usize, m: u64) -> Vec<(u64, u64,u64)> {
+    fn generate_hash_functions(n: usize, _m: u64) -> Vec<(u64, u64,u64)> {
         let mut rng = rand::thread_rng();
         let mut hash_functions = Vec::new();
 
