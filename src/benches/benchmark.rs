@@ -373,9 +373,9 @@ fn setup(c: &mut Criterion) {
 //criterion_group!(current_benches,setup);
 criterion_group!(benches,setup, bench_xor_filter_create, bench_binary_fuse_filter_create, bench_xor_filter_query,
     bench_binary_fuse_filter_query);
-    // setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
-    //             bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
-    //        bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
-    //        bench_register_aligned_bloom_filter_insert,bench_binary_fuse_filter_create, bench_xor_filter_create, bench_four_wise_binary_fuse_filter_create
-    // , bench_binary_fuse_filter_query,bench_xor_filter_query, bench_four_wise_binary_fuse_filter_query);
+    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
+                bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
+           bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
+           bench_register_aligned_bloom_filter_insert,bench_binary_fuse_filter_create, bench_xor_filter_create, bench_four_wise_binary_fuse_filter_create
+    , bench_binary_fuse_filter_query,bench_xor_filter_query, bench_four_wise_binary_fuse_filter_query);
 criterion_main!(benches);

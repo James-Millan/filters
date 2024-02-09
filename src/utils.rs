@@ -175,3 +175,12 @@ fn hash2(key: u64, hash_info: &HashInfo) -> u32 {
     return res;
 }
 
+pub(crate) fn closest_power_of_two(n: u64) -> u64 {
+    if n <= 0 {
+        return 0;
+    }
+    let exponent = (n as f64).log2().round();
+    return 2u64.pow(exponent as u32);
+}
+
+

@@ -15,8 +15,8 @@ pub(crate) struct BloomFilter {
 }
 impl BloomFilter {
     pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> BloomFilter {
-        let size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
-            * false_positive_rate.log2() + 0.5) as u64 ;
+        let size: u64 = utils::closest_power_of_two(((-1.44 * (expected_inserts as f64)).ceil()
+            * false_positive_rate.log2() + 0.5) as u64);
         let num_hashes = (-false_positive_rate.log2() + 0.5) as usize;
 
 
