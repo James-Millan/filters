@@ -3,6 +3,7 @@ use std::collections::{HashSet, VecDeque};
 #[path = "utils.rs"]
 mod utils;
 use utils::hash;
+
 pub struct XorFilter {
     fingerprints: Vec<u32>,
     hashes: Vec<(u64,u64,u64)>,
@@ -19,8 +20,12 @@ impl XorFilter {
             size: 0,
             l: 0,
         };
+
         filter.size = ((1.23 * keys.len() as f64).floor() + 32.0) as u64;
-        filter.l = 64 - (filter.size - 1).leading_zeros();
+        // if (filter.size < 1000) {
+        //     filter.size = 10000;
+        // }
+        filter.l = utils::log_base(filter.size as f64, 2f64) as u32;
         filter.construct(keys);
         return filter;
     }

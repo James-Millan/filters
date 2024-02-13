@@ -42,13 +42,9 @@ impl CuckooFilter {
         return fastmurmur3::hash(&key.to_ne_bytes()) as u8;
         //return murmur3_x64_128(&mut b"{key}", seed).unwrap() as u32;
     }
-
-
-
     fn hash2(&self, i_1: u32, f: u32) -> u32 {
         return i_1 ^ utils::hash(f as u64, self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2);
     }
-
     fn find_empty_and_set(&mut self, index: usize, f: u8) -> bool {
         for j in 0..self.bucket_size {
             if self.buckets[index as usize][j] == 0 {

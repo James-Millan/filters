@@ -13,26 +13,69 @@ mod fourwisebinaryfusefilter;
 mod threewisebinaryfusefilter16;
 mod threewisebinaryfusefilter8;
 mod fpr;
+mod XorFilter8;
 
 extern crate rand;
+#[feature(core)]
+use std::simd::f32x4;
+
 
 
 use rand::Rng;
+use rand::seq::index::sample;
+use simd::f32x4;
+use crate::fpr::bloom_filter_fpr;
 
 use crate::utils::{hash, perfect_hashing};
 
 
 fn main() {
-    let mut keys = Vec::new();
+    // let sample_sizes: Vec<u64> = vec![10,100,1000,10000,100000,1000000,10000000,100000000,1000000000,10000000000,100000000000,
+    // 1000000000000,10000000000000,100000000000000,1000000000000000,10000000000000000,100000000000000000,1000000000000000000,
+    // 10000000000000000000];
+    // for size in sample_sizes {
+    //     println!("{}", size);
+    //     let mut keys = Vec::new();
+    //     for i in 0..=size {
+    //         keys.push(i);
+    //     }
+    //     fpr::blocked_bloom_filter_fpr(size,0.01,&keys);
+    // }
 
-    for i in 0..=1000000 {
-        keys.push(i);
+    let mut keys = Vec::new();
+    for i in 0..=10000 {
+        keys.push(i as u64);
     }
 
-    fpr::bloom_filter_fpr(1000000, 0.01, &keys);
-    fpr::counting_bloom_filter_fpr(1000000,0.01,&keys);
-    fpr::cuckoo_filter_fpr(1000000, 0.01, &keys);
-    fpr::xor_filter_fpr(&keys);
+    // create simd vectors
+    let x = f32x4(1.0, 2.0, 3.0, 4.0);
+    let y = f32x4(4.0, 3.0, 2.0, 1.0);
+
+    // simd product
+    let z = x * y;
+
+    // like any struct, the simd vector can be destructured using `let`
+    let f32x4(a, b, c, d) = z;
+
+    println!("{:?}", (a, b, c, d));
+
+    // let mut simdBloom = simdblockedbloomfilter::SimdBlockedBloomFilter::new(keys.len() as u64, 64, 0.01);
+    // for key in keys {
+    //     simdBloom.insert(key);
+    // }
+    //
+    // for key in keys {
+    //     println!("{} {}", key, simdBloom.member(key));
+    // }
+    //
+    // fpr::bloom_filter_fpr(sample_size, 0.01, &keys);
+    // fpr::counting_bloom_filter_fpr(sample_size,0.01,&keys);
+    // fpr::cuckoo_filter_fpr(sample_size, 0.01, &keys);
+
+    // fpr::binary_fuse_filter_8_fpr(&keys);
+    // fpr::binary_fuse_filter_fpr(&keys);
+    // fpr::blocked_bloom_filter_fpr(sample_size,0.01,&keys);
+    // fpr::register_aligned_bloom_filter_fpr(sample_size,0.01,&keys);
     // //let xorfilter = xorfilter::XorFilter::new(keys);
     // //let perfect = perfect_hashing(&keys);
     // let binaryfusefilter = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys);

@@ -3,7 +3,7 @@
 // use std::f64;
 // use rand::Rng;
 // use slab::Slab;
-// //use core_simd::u64x2; // Assuming 128-bit SIMD registers
+// use packed_simd::u64x2;
 //
 // #[path = "utils.rs"]
 // mod utils;

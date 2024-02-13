@@ -53,9 +53,6 @@ impl CountingBloomFilter {
     }
 
     pub(crate) fn member(&self, key: u64) -> bool {
-        if key >= self.size {
-            return false
-        }
         for hash_function in &self.hash_functions {
             let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
             if self.count_array[index] <= 0 {

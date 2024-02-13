@@ -1,6 +1,7 @@
 
 use rand::Rng;
 use std::f64;
+
 #[path = "bitvector.rs"]
 mod bitvector;
 
@@ -24,7 +25,7 @@ impl BloomFilter {
             bit_array: bitvector::BitVector::new(size),
             hash_functions: Self::generate_hash_functions(num_hashes, size),
             size,
-            l: 64 - (size - 1).leading_zeros(),
+            l: utils::log_base(size as f64, 2f64) as u32,
         }
     }
 
@@ -46,9 +47,6 @@ impl BloomFilter {
     // insert hashes the key for all hash functions and sets them to be true.
     // requires a mutable reference to itself. and a reference to the key.
     pub(crate) fn insert(&mut self, key: u64) {
-        if key >= self.size {
-            return
-        }
         for hash_function in &self.hash_functions {
             let index : u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             // println!("{}", index);
@@ -58,14 +56,10 @@ impl BloomFilter {
     }
 
     pub(crate) fn member(&mut self, key: u64) -> bool {
-        if key >= self.size {
-            return false
-        }
         for hash_function in &self.hash_functions {
             let index: u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             //println!("{}", index);
-            let mem = self.bit_array.clone().member(index);
-            if !mem {
+            if !&self.bit_array.clone().member(index) {
                 return false;
             }
         }

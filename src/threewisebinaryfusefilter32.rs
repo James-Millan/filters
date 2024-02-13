@@ -36,6 +36,11 @@ impl ThreeWiseBinaryFuseFilter32 {
         filter.segment_length = 2u32.pow(exp);
         filter.log_segment = log_base(filter.segment_length as f64, 2f64) as u32;
         filter.num_segments = filter.size / filter.segment_length as u64;
+        if (filter.num_segments < 3 ) {
+            filter.size = (filter.segment_length * 3) as u64;
+            filter.num_segments = 3;
+            filter.l =  log_base(filter.size as f64, 2f64) as u32;
+        }
         filter.construct(keys);
         return filter;
     }

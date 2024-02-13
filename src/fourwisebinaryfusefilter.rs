@@ -18,7 +18,7 @@ pub struct FourWiseBinaryFuseFilter {
     num_segments: u64
 }
 impl FourWiseBinaryFuseFilter {
-    pub fn new(keys: Vec<u64>) -> FourWiseBinaryFuseFilter {
+    pub fn new(keys: &Vec<u64>) -> FourWiseBinaryFuseFilter {
         let mut filter = FourWiseBinaryFuseFilter {
             fingerprints: vec![],
             hashes: vec![],
@@ -36,6 +36,11 @@ impl FourWiseBinaryFuseFilter {
         filter.segment_length = 2u32.pow(exp);
         filter.log_segment = log_base(filter.segment_length as f64, 2f64) as u32;
         filter.num_segments = filter.size / filter.segment_length as u64;
+        if (filter.num_segments < 4 ) {
+            filter.size = (filter.segment_length * 4) as u64;
+            filter.num_segments = 4;
+            filter.l =  log_base(filter.size as f64, 2f64) as u32;
+        }
         filter.construct(keys);
         return filter;
     }
@@ -45,7 +50,7 @@ impl FourWiseBinaryFuseFilter {
         return f == (self.fingerprints[h0 as usize] ^ self.fingerprints[h1 as usize] ^ self.fingerprints[h2 as usize] ^
         self.fingerprints[h3 as usize]);
     }
-    fn construct(&mut self, keys: Vec<u64>) {
+    fn construct(&mut self, keys: &Vec<u64>) {
         let mut finished = false;
         while !finished {
             let mut rng = rand::thread_rng();
@@ -58,10 +63,14 @@ impl FourWiseBinaryFuseFilter {
                 hash_functions.push((a1,a2,b));
             }
             self.hashes = hash_functions;
-            if self.mapping(&keys) {
+            if self.mapping(keys) {
                 finished = true;
-                //println!("mapping succeeded!");
+                println!("mapping succeeded!");
                 self.assign();
+            }
+            else {
+                println!("mapping failed!");
+                // println!("{} {} {}", self.l, self.segment_length, self.log_segment)
             }
         }
     }
@@ -119,7 +128,7 @@ impl FourWiseBinaryFuseFilter {
         }
         else {
             // println!("'{:?}'", sigma);
-            // println!("'{}'", sigma.len());
+            println!("'{}'", sigma.len());
             return false;
         }
     }

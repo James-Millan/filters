@@ -63,10 +63,13 @@ mod tests {
         }
     }
 }
+
+static SAMPLE_SIZE: u64 = 10;
+
 fn bench_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_create", |b| {
         b.iter(|| {
-            let bloom_filter = BloomFilter::new(100000, 0.01);
+            let bloom_filter = BloomFilter::new(SAMPLE_SIZE, 0.01);
             //stop it being optimized by the compiler
             black_box(bloom_filter);
         });
@@ -74,8 +77,7 @@ fn bench_bloom_filter_create(c: &mut Criterion) {
 }
 
 fn bench_bloom_filter_insert(c: &mut Criterion) {
-    let sample_size = 1000000000;
-    let bloom_filter = RefCell::new(BloomFilter::new(sample_size, 0.01));
+    let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -92,7 +94,7 @@ fn bench_bloom_filter_insert(c: &mut Criterion) {
 fn bench_cuckoo_filter_create(c: &mut Criterion) {
     c.bench_function("bench_cuckoo_filter_create", |b| {
         b.iter(|| {
-            let cuckoo_filter = CuckooFilter::new(958506, 100, 8);
+            let cuckoo_filter = CuckooFilter::new(SAMPLE_SIZE as usize, 1000, 8);
             //stop it being optimized by the compiler
             black_box(cuckoo_filter);
         });
@@ -101,7 +103,7 @@ fn bench_cuckoo_filter_create(c: &mut Criterion) {
 
 fn bench_cuckoo_filter_insert(c: &mut Criterion) {
     let _sample_size = 100000000;
-    let cuckoo_filter = RefCell::new(CuckooFilter::new(10000000, 10000, 8));
+    let cuckoo_filter = RefCell::new(CuckooFilter::new(SAMPLE_SIZE as usize, 10000, 8));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -116,14 +118,13 @@ fn bench_cuckoo_filter_insert(c: &mut Criterion) {
 }
 
 fn bench_cuckoo_filter_member(c: &mut Criterion) {
-    let _sample_size = 1000000;
-    let cuckoo_filter = RefCell::new(CuckooFilter::new(1000000, 10000, 8));
+    let cuckoo_filter = RefCell::new(CuckooFilter::new(SAMPLE_SIZE as usize, 10000, 8));
 
-    for j in 0..1000000 {
+    for j in 0..SAMPLE_SIZE {
         cuckoo_filter.borrow_mut().insert(j);
     }
     let mut i = 0;
-    c.bench_function("bench_cuckoofilter_insert", |b| {
+    c.bench_function("bench_cuckoofilter_member", |b| {
         b.iter(|| {
             cuckoo_filter.borrow_mut().member(i);
             i += 1;
@@ -137,7 +138,7 @@ fn bench_cuckoo_filter_member(c: &mut Criterion) {
 fn bench_counting_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_counting_bloom_filter_create", |b| {
         b.iter(|| {
-            let counting_bloom__filter = CountingBloomFilter::new(100000, 0.01);
+            let counting_bloom__filter = CountingBloomFilter::new(SAMPLE_SIZE, 0.01);
             //stop it being optimized by the compiler
             black_box(counting_bloom__filter);
         });
@@ -146,7 +147,7 @@ fn bench_counting_bloom_filter_create(c: &mut Criterion) {
 
 fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
     let sample_size = 1000000000;
-    let counting_bloom_filter = RefCell::new(CountingBloomFilter::new(sample_size, 0.01));
+    let counting_bloom_filter = RefCell::new(CountingBloomFilter::new(SAMPLE_SIZE, 0.01));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -163,7 +164,7 @@ fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
 fn bench_blocked_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_blocked_bloom_filter_create", |b| {
         b.iter(|| {
-            let blocked_bloom_filter = BlockedBloomFilter::new(100000, 64, 0.01);
+            let blocked_bloom_filter = BlockedBloomFilter::new(SAMPLE_SIZE, 64, 0.01);
             //stop it being optimized by the compiler
             black_box(blocked_bloom_filter);
         });
@@ -172,7 +173,7 @@ fn bench_blocked_bloom_filter_create(c: &mut Criterion) {
 
 fn bench_blocked_bloom_filter_insert(c: &mut Criterion) {
     let _sample_size = 1000000000;
-    let blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(100000,
+    let blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(SAMPLE_SIZE,
                                                                         64, 0.01));
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -188,7 +189,7 @@ fn bench_blocked_bloom_filter_insert(c: &mut Criterion) {
 
 fn bench_blocked_bloom_filter_query(c: &mut Criterion) {
     let _sample_size = 1000000000;
-    let blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(100000,
+    let blocked_bloom_filter = RefCell::new(BlockedBloomFilter::new(SAMPLE_SIZE,
                                                                         64, 0.01));
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
 
@@ -211,7 +212,7 @@ fn bench_register_aligned_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_register_aligned_bloom_filter_create", |b| {
         b.iter(|| {
             let register_aligned_bloom_filter = registeralignedbloomfilter::
-            RegisterAlignedBloomFilter::new(100000, 64, 0.01);
+            RegisterAlignedBloomFilter::new(SAMPLE_SIZE, 64, 0.01);
             //stop it being optimized by the compiler
             black_box(register_aligned_bloom_filter);
         });
@@ -221,7 +222,7 @@ fn bench_register_aligned_bloom_filter_create(c: &mut Criterion) {
 fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
     let _sample_size = 1000000;
     let register_aligned_bloom_filter = RefCell::new(registeralignedbloomfilter
-    ::RegisterAlignedBloomFilter::new(100000, 64, 0.01));
+    ::RegisterAlignedBloomFilter::new(SAMPLE_SIZE, 64, 0.01));
 
     //let mut bloom_filter = BloomFilter::new(100000, 6).clone();
     let mut i = 0;
@@ -267,7 +268,7 @@ fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
 fn bench_xor_filter_create(c: &mut Criterion) {
     c.bench_function("bench_xor_filter_create", |b| {
         let mut keys = Vec::new();
-        for i in 0..100000 {
+        for i in 0..SAMPLE_SIZE {
             keys.push(i);
         }
         b.iter(|| {
@@ -280,7 +281,7 @@ fn bench_xor_filter_create(c: &mut Criterion) {
 
 fn bench_xor_filter_query(c: &mut Criterion) {
     let mut keys = Vec::new();
-    for i in 0..100000 {
+    for i in 0..SAMPLE_SIZE {
         keys.push(i);
     }
     let xor_filter = RefCell::new(xorfilter::XorFilter::new(keys.clone()));
@@ -300,7 +301,7 @@ fn bench_xor_filter_query(c: &mut Criterion) {
 fn bench_binary_fuse_filter_create(c: &mut Criterion) {
     c.bench_function("bench_binary_fuse_filter_create", |b| {
         let mut keys = Vec::new();
-        for i in 0..100000 {
+        for i in 0..SAMPLE_SIZE {
             keys.push(i);
         }
         b.iter(|| {
@@ -313,7 +314,7 @@ fn bench_binary_fuse_filter_create(c: &mut Criterion) {
 
 fn bench_binary_fuse_filter_query(c: &mut Criterion) {
     let mut keys = Vec::new();
-    for i in 0..100000 {
+    for i in 0..SAMPLE_SIZE {
         keys.push(i);
     }
     let binary_fuse_filter = RefCell::new(binaryfusefiter3::ThreeWiseBinaryFuseFilter32::new(keys.clone()));
@@ -331,11 +332,11 @@ fn bench_binary_fuse_filter_query(c: &mut Criterion) {
 fn bench_four_wise_binary_fuse_filter_create(c: &mut Criterion) {
     c.bench_function("bench_four_wise_binary_fuse_filter_create", |b| {
         let mut keys = Vec::new();
-        for i in 0..100000 {
+        for i in 0..SAMPLE_SIZE {
             keys.push(i);
         }
         b.iter(|| {
-            let binary_fuse_filter = binaryfusefiter4::FourWiseBinaryFuseFilter::new(keys.clone());
+            let binary_fuse_filter = binaryfusefiter4::FourWiseBinaryFuseFilter::new(&keys);
             //stop it being optimized by the compiler
             black_box(binary_fuse_filter);
         });
@@ -344,10 +345,10 @@ fn bench_four_wise_binary_fuse_filter_create(c: &mut Criterion) {
 
 fn bench_four_wise_binary_fuse_filter_query(c: &mut Criterion) {
     let mut keys = Vec::new();
-    for i in 0..100000 {
+    for i in 0..SAMPLE_SIZE {
         keys.push(i);
     }
-    let binary_fuse_filter = RefCell::new(binaryfusefiter4::FourWiseBinaryFuseFilter::new(keys.clone()));
+    let binary_fuse_filter = RefCell::new(binaryfusefiter4::FourWiseBinaryFuseFilter::new(&keys));
     let mut i = 0;
     c.bench_function("bench_four_wise_binary_fuse_filter_member", |b| {
         b.iter(|| {
@@ -366,16 +367,19 @@ fn setup(c: &mut Criterion) {
     let mut group = c.benchmark_group("benches");
     // Configure Criterion.rs to detect smaller differences and increase sample size to improve
     // precision and counteract the resulting noise.
-    group.sample_size(10000000);
+    group.sample_size(SAMPLE_SIZE as usize);
     // group.finish();
 }
 
 //criterion_group!(current_benches,setup);
-criterion_group!(benches,setup, bench_xor_filter_create, bench_binary_fuse_filter_create, bench_xor_filter_query,
-    bench_binary_fuse_filter_query);
-    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create, bench_cuckoo_filter_insert,
+criterion_group!(benches,
+    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create,
+    //bench_cuckoo_filter_insert,
                 bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
            bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
-           bench_register_aligned_bloom_filter_insert,bench_binary_fuse_filter_create, bench_xor_filter_create, bench_four_wise_binary_fuse_filter_create
-    , bench_binary_fuse_filter_query,bench_xor_filter_query, bench_four_wise_binary_fuse_filter_query);
+           bench_register_aligned_bloom_filter_insert,bench_binary_fuse_filter_create, bench_xor_filter_create,
+    //bench_four_wise_binary_fuse_filter_create,
+    bench_binary_fuse_filter_query,bench_xor_filter_query
+//    , bench_four_wise_binary_fuse_filter_query
+);
 criterion_main!(benches);
