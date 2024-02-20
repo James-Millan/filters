@@ -68,7 +68,7 @@ fn bench_bloom_filter_member(c: &mut Criterion) {
     let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
 
     for j in 0..SAMPLE_SIZE {
-        cuckoo_filter.borrow_mut().insert(j);
+        bloom_filter.borrow_mut().insert(j);
     }
     let mut i = 0;
     c.bench_function("bench_bloom_filter_member", |b| {
