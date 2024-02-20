@@ -5,7 +5,7 @@ use rand::Rng;
 #[path="utils.rs"]
 mod utils;
 
-pub(crate) struct CountingBloomFilter {
+pub struct CountingBloomFilter {
     pub(crate) count_array: Vec<u8>,
     hash_functions: Vec<(u64,u64,u64)>,
     size: u64,
@@ -14,7 +14,7 @@ pub(crate) struct CountingBloomFilter {
 
 
 impl CountingBloomFilter {
-    pub(crate) fn new(expected_inserts: u64, false_positive_rate: f64) -> CountingBloomFilter {
+    pub fn new(expected_inserts: u64, false_positive_rate: f64) -> CountingBloomFilter {
         let size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
             * false_positive_rate.log2() + 0.5) as u64 ;
         let num_hashes = (-false_positive_rate.log2() + 0.5) as usize;
@@ -42,7 +42,7 @@ impl CountingBloomFilter {
 
     // insert hashes the key for all hash functions and sets them to be true.
     // requires a mutable reference to itself. and a reference to the key.
-    pub(crate) fn insert(&mut self, key: u64) {
+    pub fn insert(&mut self, key: u64) {
         if key >= self.size {
             return
         }

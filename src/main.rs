@@ -14,19 +14,13 @@ mod threewisebinaryfusefilter16;
 mod threewisebinaryfusefilter8;
 mod fpr;
 mod XorFilter8;
+mod ribbonfilter;
 
 extern crate rand;
-#[feature(core)]
-use std::simd::f32x4;
 
 
 
 use rand::Rng;
-use rand::seq::index::sample;
-use simd::f32x4;
-use crate::fpr::bloom_filter_fpr;
-
-use crate::utils::{hash, perfect_hashing};
 
 
 fn main() {
@@ -47,17 +41,34 @@ fn main() {
         keys.push(i as u64);
     }
 
-    // create simd vectors
-    let x = f32x4(1.0, 2.0, 3.0, 4.0);
-    let y = f32x4(4.0, 3.0, 2.0, 1.0);
+    // let binaryfusefilter = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys);
+    //
+    // for j in 0..=10000 {
+    //     println!("Contains '{}': {}", j, binaryfusefilter.member(j));
+    // }
 
-    // simd product
-    let z = x * y;
+    // let ribbon_filter = ribbonfilter::RibbonFilter::new(&keys, 0.1);
+    // for j in 0..=10000 {
+    //     println!("Contains '{}': {}", j, ribbon_filter.member(j));
+    // }
 
-    // like any struct, the simd vector can be destructured using `let`
-    let f32x4(a, b, c, d) = z;
 
-    println!("{:?}", (a, b, c, d));
+    // let mut ribbon_filter = ribbonfilter::RibbonFilter::new(&keys, 0.1);
+    // for j in 0..=10000 {
+    //     println!("Contains '{}': {}", j, ribbon_filter.member(j));
+    // }
+    // //
+    // // create simd vectors
+    // let x = f32x4(1.0, 2.0, 3.0, 4.0);
+    // let y = f32x4(4.0, 3.0, 2.0, 1.0);
+    //
+    // // simd product
+    // let z = x * y;
+    //
+    // // like any struct, the simd vector can be destructured using `let`
+    // let f32x4(a, b, c, d) = z;
+    //
+    // println!("{:?}", (a, b, c, d));
 
     // let mut simdBloom = simdblockedbloomfilter::SimdBlockedBloomFilter::new(keys.len() as u64, 64, 0.01);
     // for key in keys {
