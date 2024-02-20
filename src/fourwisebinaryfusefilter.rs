@@ -65,11 +65,11 @@ impl FourWiseBinaryFuseFilter {
             self.hashes = hash_functions;
             if self.mapping(keys) {
                 finished = true;
-                println!("mapping succeeded!");
+                // println!("mapping succeeded!");
                 self.assign();
             }
             else {
-                println!("mapping failed!");
+                // println!("mapping failed!");
                 // println!("{} {} {}", self.l, self.segment_length, self.log_segment)
             }
         }
@@ -128,7 +128,7 @@ impl FourWiseBinaryFuseFilter {
         }
         else {
             // println!("'{:?}'", sigma);
-            println!("'{}'", sigma.len());
+            //println!("'{}'", sigma.len());
             return false;
         }
     }

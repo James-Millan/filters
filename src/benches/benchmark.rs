@@ -34,7 +34,7 @@ mod binaryfusefiter3;
 #[path = "../fourwisebinaryfusefilter.rs"]
 mod binaryfusefiter4;
 
-static SAMPLE_SIZE: u64 = 10;
+static SAMPLE_SIZE: u64 = 100000000;
 
 fn bench_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_create", |b| {
@@ -152,8 +152,9 @@ fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
             counting_bloom_filter.borrow_mut().insert(i);
             i += 1;
             //stop it being optimized by the compiler
-            //black_box(bloom_filter);
         });
+        black_box(counting_bloom_filter.borrow_mut());
+
     });
 }
 
@@ -404,14 +405,34 @@ fn setup(c: &mut Criterion) {
     // group.finish();
 }
 
+fn setup2(c: &mut Criterion) {
+    let mut group = c.benchmark_group("benches");
+    // Configure Criterion.rs to detect smaller differences and increase sample size to improve
+    // precision and counteract the resulting noise.
+    group.sample_size(10 as usize);
+    // group.finish();
+}
+
+fn setup3(c: &mut Criterion) {
+    let mut group = c.benchmark_group("benches");
+    // Configure Criterion.rs to detect smaller differences and increase sample size to improve
+    // precision and counteract the resulting noise.
+    group.sample_size(SAMPLE_SIZE as usize);
+    // group.finish();
+}
+
 //criterion_group!(current_benches,setup);
 criterion_group!(benches,
-    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_bloom_filter_member, bench_cuckoo_filter_create,
-    bench_cuckoo_filter_insert, bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create,
-    bench_counting_bloom_filter_member,bench_blocked_bloom_filter_create,bench_blocked_bloom_filter_insert,
-    bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
-           bench_register_aligned_bloom_filter_insert, bench_register_aligned_filter_member  , bench_binary_fuse_filter_create,
-    bench_xor_filter_create,bench_four_wise_binary_fuse_filter_create,
-    bench_binary_fuse_filter_query,bench_xor_filter_query, bench_four_wise_binary_fuse_filter_query
+    setup, bench_bloom_filter_insert, bench_bloom_filter_member,
+    // bench_cuckoo_filter_insert, 
+    bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, 
+    bench_counting_bloom_filter_member,bench_blocked_bloom_filter_insert,
+    bench_blocked_bloom_filter_query, 
+    bench_register_aligned_bloom_filter_insert, bench_register_aligned_filter_member  , setup2, bench_bloom_filter_create,  bench_cuckoo_filter_create,
+    bench_binary_fuse_filter_create,bench_counting_bloom_filter_create,bench_blocked_bloom_filter_create,bench_register_aligned_bloom_filter_create,
+    bench_xor_filter_create, setup3,
+    // bench_four_wise_binary_fuse_filter_create,
+    bench_binary_fuse_filter_query,bench_xor_filter_query
+    // ,bench_four_wise_binary_fuse_filter_query
 );
 criterion_main!(benches);

@@ -28,7 +28,7 @@ impl BitVector {
     }
 
     // return true if bit set. false if not.
-    pub(crate) fn member(self, index: u64) -> bool {
+    pub(crate) fn member(&self, index: u64) -> bool {
         let mask = 1 << (index % 8);
         return (self.array[(index / 8) as usize] & mask)!= 0
     }

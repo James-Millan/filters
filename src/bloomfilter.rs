@@ -55,17 +55,14 @@ impl BloomFilter {
         }
     }
 
-    pub(crate) fn member(&mut self, key: u64) -> bool {
+    pub(crate) fn member(&self, key: u64) -> bool {
         for hash_function in &self.hash_functions {
             let index: u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
-            //println!("{}", index);
-            if !&self.bit_array.clone().member(index) {
+            if !self.bit_array.member(index) {
                 return false;
             }
         }
-        //println!("Hash functions: {:?}", self.hash_functions);
-        //println!("Bit Array: {:?}", self.bit_array);
-        true
+        return true;
     }
 }
 
