@@ -8,6 +8,7 @@ use bloomfilter::BloomFilter;
 use crate::blockedbloomfilter::BlockedBloomFilter;
 use crate::countingbloomfilter::CountingBloomFilter;
 use crate::cuckoofilter::CuckooFilter;
+use crate::registeralignedbloomfilter::RegisterAlignedBloomFilter;
 
 #[path = "../bloomfilter.rs"]
 mod bloomfilter;
@@ -62,6 +63,24 @@ fn bench_bloom_filter_insert(c: &mut Criterion) {
         });
     });
 }
+
+fn bench_bloom_filter_member(c: &mut Criterion) {
+    let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
+
+    for j in 0..SAMPLE_SIZE {
+        cuckoo_filter.borrow_mut().insert(j);
+    }
+    let mut i = 0;
+    c.bench_function("bench_bloom_filter_member", |b| {
+        b.iter(|| {
+            bloom_filter.borrow_mut().member(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
 
 fn bench_cuckoo_filter_create(c: &mut Criterion) {
     c.bench_function("bench_cuckoo_filter_create", |b| {
@@ -138,6 +157,24 @@ fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
     });
 }
 
+fn bench_counting_bloom_filter_member(c: &mut Criterion) {
+    let counting_bloom_filter = RefCell::new(CountingBloomFilter::new(SAMPLE_SIZE, 0.01));
+
+    for j in 0..SAMPLE_SIZE {
+        counting_bloom_filter.borrow_mut().insert(j);
+    }
+    let mut i = 0;
+    c.bench_function("bench_counting_bloom_filter_member", |b| {
+        b.iter(|| {
+            counting_bloom_filter.borrow_mut().member(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+
 fn bench_blocked_bloom_filter_create(c: &mut Criterion) {
     c.bench_function("bench_blocked_bloom_filter_create", |b| {
         b.iter(|| {
@@ -211,6 +248,23 @@ fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
     c.bench_function("bench_register_aligned_bloom_filter_insert", |b| {
         b.iter(|| {
             register_aligned_bloom_filter.borrow_mut().insert(i);
+            i += 1;
+            //stop it being optimized by the compiler
+            //black_box(bloom_filter);
+        });
+    });
+}
+
+fn bench_register_aligned_filter_member(c: &mut Criterion) {
+    let register_aligned_filter = RefCell::new(RegisterAlignedBloomFilter::new(SAMPLE_SIZE,
+                                                                     64, 0.01));
+    for j in 0..SAMPLE_SIZE {
+        register_aligned_filter.borrow_mut().insert(j);
+    }
+    let mut i = 0;
+    c.bench_function("bench_register_aligned_filter_member", |b| {
+        b.iter(|| {
+            register_aligned_filter.borrow_mut().member(i);
             i += 1;
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
@@ -352,13 +406,12 @@ fn setup(c: &mut Criterion) {
 
 //criterion_group!(current_benches,setup);
 criterion_group!(benches,
-    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_cuckoo_filter_create,
-    //bench_cuckoo_filter_insert,
-                bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create, bench_blocked_bloom_filter_create,
-           bench_blocked_bloom_filter_insert, bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
-           bench_register_aligned_bloom_filter_insert,bench_binary_fuse_filter_create, bench_xor_filter_create,
-    //bench_four_wise_binary_fuse_filter_create,
-    bench_binary_fuse_filter_query,bench_xor_filter_query
-//    , bench_four_wise_binary_fuse_filter_query
+    setup, bench_bloom_filter_create, bench_bloom_filter_insert, bench_bloom_filter_member, bench_cuckoo_filter_create,
+    bench_cuckoo_filter_insert, bench_cuckoo_filter_member, bench_counting_bloom_filter_insert, bench_counting_bloom_filter_create,
+    bench_counting_bloom_filter_member,bench_blocked_bloom_filter_create,bench_blocked_bloom_filter_insert,
+    bench_blocked_bloom_filter_query, bench_register_aligned_bloom_filter_create,
+           bench_register_aligned_bloom_filter_insert, bench_register_aligned_filter_member  , bench_binary_fuse_filter_create,
+    bench_xor_filter_create,bench_four_wise_binary_fuse_filter_create,
+    bench_binary_fuse_filter_query,bench_xor_filter_query, bench_four_wise_binary_fuse_filter_query
 );
 criterion_main!(benches);
