@@ -39,7 +39,7 @@ mod binaryfusefiter3;
 #[path = "../fourwisebinaryfusefilter.rs"]
 mod binaryfusefiter4;
 
-static SAMPLE_SIZE: u64 = 10000;
+static SAMPLE_SIZE: u64 = 100000000;
 // let DISJOINT_KEYS:(Vec<u64>, Vec<u64>) = ((0..SAMPLE_SIZE).collect(),(SAMPLE_SIZE..2*SAMPLE_SIZE).collect());
 // let MIXED_KEYS:(Vec<u64>, Vec<u64>) = generate_mixed_keys(SAMPLE_SIZE);
 // let UNIFORM_KEYS: Vec<u64> = (0..SAMPLE_SIZE).collect();
@@ -84,7 +84,7 @@ fn bench_bloom_filter_member(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_member", |b| {
         b.iter(|| {
             bloom_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
         });
@@ -150,7 +150,7 @@ fn bench_cuckoo_filter_create(c: &mut Criterion) {
     c.bench_function("bench_cuckoo_filter_create", |b| {
         b.iter(|| {
             let mut cuckoo_filter = CuckooFilter::new(SAMPLE_SIZE as usize, 1000, 8);
-            for i in 0..=SAMPLE_SIZE {
+            for i in 0..=(SAMPLE_SIZE as f64*0.95f64)as u64 {
                 cuckoo_filter.insert(i);
             }
             //stop it being optimized by the compiler
@@ -167,7 +167,7 @@ fn bench_cuckoo_filter_insert(c: &mut Criterion) {
     c.bench_function("bench_cuckoofilter_insert", |b| {
         b.iter(|| {
             cuckoo_filter.borrow_mut().insert(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
         });
@@ -184,7 +184,7 @@ fn bench_cuckoo_filter_member(c: &mut Criterion) {
     c.bench_function("bench_cuckoofilter_member", |b| {
         b.iter(|| {
             cuckoo_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
         });
@@ -267,7 +267,7 @@ fn bench_counting_bloom_filter_insert(c: &mut Criterion) {
     c.bench_function("bench_counting_bloom_filter_insert", |b| {
         b.iter(|| {
             counting_bloom_filter.borrow_mut().insert(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
             //stop it being optimized by the compiler
         });
         black_box(counting_bloom_filter.borrow_mut());
@@ -284,7 +284,7 @@ fn bench_counting_bloom_filter_member(c: &mut Criterion) {
     c.bench_function("bench_counting_bloom_filter_member", |b| {
         b.iter(|| {
             counting_bloom_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
         });
     });
 }
@@ -358,7 +358,7 @@ fn bench_blocked_bloom_filter_insert(c: &mut Criterion) {
     c.bench_function("bench_blocked_bloom_filter_insert", |b| {
         b.iter(|| {
             blocked_bloom_filter.borrow_mut().insert(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
         });
@@ -374,7 +374,7 @@ fn bench_blocked_bloom_filter_query(c: &mut Criterion) {
     c.bench_function("bench_blocked_bloom_filter_query", |b| {
         b.iter(|| {
             blocked_bloom_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
         });
     });
 }
@@ -454,7 +454,7 @@ fn bench_register_aligned_bloom_filter_insert(c: &mut Criterion) {
     c.bench_function("bench_register_aligned_bloom_filter_insert", |b| {
         b.iter(|| {
             register_aligned_bloom_filter.borrow_mut().insert(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
             //stop it being optimized by the compiler
             //black_box(bloom_filter);
         });
@@ -470,7 +470,7 @@ fn bench_register_aligned_filter_member(c: &mut Criterion) {
     c.bench_function("bench_register_aligned_filter_member", |b| {
         b.iter(|| {
             register_aligned_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
         });
     });
 }
@@ -579,7 +579,7 @@ fn bench_xor_filter_query(c: &mut Criterion) {
     c.bench_function("bench_xor_filter_query", |b| {
         b.iter(|| {
             xor_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
         });
     });
 }
@@ -657,7 +657,7 @@ fn bench_binary_fuse_filter_query(c: &mut Criterion) {
     c.bench_function("bench_binary_fuse_filter_member", |b| {
         b.iter(|| {
             binary_fuse_filter.borrow_mut().member(i as u64);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
+            i = i + 1;
         });
     });
 }
@@ -831,8 +831,11 @@ criterion_group!(benches,
     bench_binary_fuse_filter_create,bench_counting_bloom_filter_create,bench_blocked_bloom_filter_create,bench_register_aligned_bloom_filter_create,
     bench_xor_filter_create, setup3,
     // bench_four_wise_binary_fuse_filter_create,
-    bench_binary_fuse_filter_query,bench_binary_fuse_filter_random_query, bench_binary_fuse_filter_mixed_query,
-    bench_binary_fuse_filter_disjoint_query,bench_xor_filter_query, bench_xor_filter_random_query, bench_xor_filter_mixed_query,
+    bench_binary_fuse_filter_query,
+    bench_binary_fuse_filter_random_query, 
+    bench_binary_fuse_filter_mixed_query,
+    bench_binary_fuse_filter_disjoint_query,
+    bench_xor_filter_query, bench_xor_filter_random_query, bench_xor_filter_mixed_query,
     bench_xor_filter_disjoint_query
     // ,bench_four_wise_binary_fuse_filter_query
 );
