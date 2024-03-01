@@ -9,13 +9,15 @@ edition = "2021"
 rand = "0.8.5"
 fnv = "1.0.7"
 murmur3 = "0.5.2"
-chrono = "0.4.31"
+chrono = "0.4.34"
 fastmurmur3 = "0.2.0"
 criterion = { version = "0.5.1" }
 slab = "0.4.9"
 h2 = "0.4.2"
 log = "0.4.20"
-ahash = "0.8.8"
+ahash = "0.8.9"
+num = "0.4.1"
+packed_simd = "0.3.9"
 
 [[bench]]
 name = "bloom_filter_benchmark"
