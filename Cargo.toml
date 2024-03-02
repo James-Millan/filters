@@ -17,7 +17,6 @@ h2 = "0.4.2"
 log = "0.4.20"
 ahash = "0.8.9"
 num = "0.4.1"
-packed_simd = "0.3.9"
 
 [[bench]]
 name = "bloom_filter_benchmark"
