@@ -30,6 +30,7 @@ impl TabulationHashing {
     }
 
     pub(crate) fn tabulation_hashing(&self, x: u64) -> u64 {
+
         // obtain hex digits from key and xor lookups together.
         let mut res = 0;
         for i in (0..8).rev() {

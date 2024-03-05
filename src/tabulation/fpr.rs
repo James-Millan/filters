@@ -1,11 +1,29 @@
 use std::collections::{binary_heap, HashSet};
 use rand::{random, Rng};
+
+
+#[path = "blockedbloomfilter.rs"]
+mod blockedbloomfilter;
+#[path = "bloomfilter.rs"]
+mod bloomfilter;
+#[path = "countingbloomfilter.rs"]
+mod countingbloomfilter;
+#[path = "cuckoofilter.rs"]
+mod cuckoofilter;
+#[path = "registeralignedbloomfilter.rs"]
+mod registeralignedbloomfilter;
+#[path = "XorFilter8.rs"]
+mod XorFilter8;
+#[path = "threewisebinaryfusefilter8.rs"]
+mod threewisebinaryfusefilter8;
+
+
 use crate::blockedbloomfilter::BlockedBloomFilter;
 use crate::bloomfilter::BloomFilter;
 use crate::countingbloomfilter::CountingBloomFilter;
 use crate::cuckoofilter::CuckooFilter;
 use crate::registeralignedbloomfilter::RegisterAlignedBloomFilter;
-use crate::{threewisebinaryfusefilter32, threewisebinaryfusefilter8, xorfilter, XorFilter8};
+use crate::{threewisebinaryfusefilter32,xorfilter};
 use crate::registeralignedlarger::RegisterAlignedBloomFilterLarger;
 
 pub(crate) fn bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
@@ -112,7 +130,7 @@ pub(crate) fn binary_fuse_filter_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
 }
 
 pub(crate) fn binary_fuse_filter_8_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
-    let mut binary_fuse_filter = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter32::new(keys.clone());
+    let mut binary_fuse_filter = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter8::new(keys.clone());
     let mut count: f64 = 0f64;
     let mut fp: f64 = 0f64;
     for i in lookup_keys {
@@ -182,7 +200,7 @@ pub(crate) fn register_aligned_bloom_filter_larger_fpr(size: u64, fpr:f64, keys:
 
 
 pub(crate) fn run_fpr_tests(size: u64) {
-    println!("norm hashing normal");
+    println!("tab hashing");
     println!("{}", size);
     let mut keys = Vec::new();
     for i in 0..=size {
@@ -208,14 +226,14 @@ pub(crate) fn run_fpr_tests(size: u64) {
 }
 
 pub(crate) fn run_randomised_fpr_tests(size: u64) {
-    println!("norm hash random");
+    println!("tab hash random");
     println!("{}", size);
     //let mut keys = Vec::new();
     let mut set_keys = HashSet::new();
     let mut rng = rand::thread_rng();
 
     while set_keys.len() < size as usize {
-        let random_value: u64 = rng.gen_range(0..(size as f64*4f64) as u64);
+        let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
         if !set_keys.contains(&random_value) {
             set_keys.insert(random_value);
         }
@@ -225,7 +243,7 @@ pub(crate) fn run_randomised_fpr_tests(size: u64) {
 
     let mut lookup_keys = HashSet::new();
     while lookup_keys.len() < size as usize {
-        let random_value: u64 = rng.gen_range(0..(size as f64*4f64) as u64);
+        let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
         if !set_keys.contains(&random_value) && !lookup_keys.contains(&random_value) {
             lookup_keys.insert(random_value);
         }
@@ -237,8 +255,8 @@ pub(crate) fn run_randomised_fpr_tests(size: u64) {
     bloom_filter_fpr(size, 0.01, &keys,&lookup_keys);
     counting_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     cuckoo_filter_fpr(size, 0.01, &keys,&lookup_keys);
-    // binary_fuse_filter_8_fpr(&keys,&lookup_keys);
-    // xor_filter_8_fpr(&keys,&lookup_keys);
+    binary_fuse_filter_8_fpr(&keys,&lookup_keys);
+    xor_filter_8_fpr(&keys,&lookup_keys);
     blocked_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     register_aligned_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     register_aligned_bloom_filter_larger_fpr(size,0.01,&keys,&lookup_keys);

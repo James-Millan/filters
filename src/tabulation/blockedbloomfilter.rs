@@ -1,13 +1,17 @@
-#[path = "bloomfilter.rs"]
-mod bloomfilter;
 use std::f64;
-
-
 use rand::Rng;
 use slab::Slab;
+#[path = "../bitvector.rs"]
+mod bitvector;
 
-#[path = "utils.rs"]
+#[path = "../utils.rs"]
 mod utils;
+
+#[path = "tabulationhashing.rs"]
+mod tabulationhashing;
+
+use tabulationhashing::TabulationHashing;
+
 
 pub struct BlockedBloomFilter {
     size: u64,
@@ -15,22 +19,17 @@ pub struct BlockedBloomFilter {
     block_size: usize,
     num_blocks: u64,
     num_hashes: usize,
-    hash_functions: Vec<(u64,u64,u64)>,
-    binary_info: (u32,u32)
+    hash_functions: Vec<TabulationHashing>,
 }
 
 impl BlockedBloomFilter {
     // block_size = size of cache line in bytes.
     pub fn new(expected_inserts : u64, block_size: usize, false_positive_rate: f64) -> Self {
-        let size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
+        let mut size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
             * (false_positive_rate/5.0).log2() + 0.5) as u64 ;
+        size = size * 100;
         let num_hashes = (-false_positive_rate.log2() + 1.5) as usize;
         let num_blocks = (size + ((block_size*8) - 1) as u64) / (block_size*8) as u64;
-        let mut rng = rand::thread_rng();
-        let _a1 = rng.gen_range(1..=u64::MAX);
-        let _a2 = rng.gen_range(1..=u64::MAX);
-        let _b = rng.gen_range(1..=u64::MAX);
-        let pair = (utils::log_base(num_blocks as f64, 2f64) as u32, utils::log_base(block_size as f64, 2f64) as u32);
         BlockedBloomFilter {
             size,
             blocks: Self::generate_blocks(num_blocks, block_size),
@@ -38,21 +37,13 @@ impl BlockedBloomFilter {
             num_blocks,
             num_hashes,
             // first hash function is always to find the block.
-            hash_functions: Self::generate_hash_functions(num_hashes),
-            binary_info: pair
+            hash_functions: Self::generate_hash_functions(num_hashes)
         }
     }
-
-
-    fn generate_hash_functions(num_hashes: usize) -> Vec<(u64, u64,u64)> {
-        let mut rng = rand::thread_rng();
+    fn generate_hash_functions(num_hashes: usize) -> Vec<TabulationHashing> {
         let mut hash_functions = Vec::new();
-
         for _ in 0..num_hashes {
-            let a1: u64 = rng.gen_range(1..=u64::MAX );
-            let a2: u64 = rng.gen_range(1..=u64::MAX);
-            let b: u64 = rng.gen_range(1..=u64::MAX);
-            hash_functions.push((a1,a2,b));
+            hash_functions.push(TabulationHashing::new());
         }
         return hash_functions;
     }
@@ -71,8 +62,7 @@ impl BlockedBloomFilter {
         if(self.num_blocks <= 1) {
             return 0;
         }
-        return (utils::hash(element, self.binary_info.0, self.hash_functions[0].0, self.hash_functions[0].1,
-                           self.hash_functions[0].2) as usize ) % self.num_blocks as usize;
+        return ((self.hash_functions[0].tabulation_hashing(element)) % self.num_blocks) as usize;
     }
 
     // Add an element to the correct block.
@@ -81,9 +71,8 @@ impl BlockedBloomFilter {
         let block = self.blocks.get_mut(block_id).unwrap();
 
         for i in 1..self.num_hashes {
-            let hash_function = self.hash_functions[i];
-            let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
-                                           hash_function.2) % self.block_size as u32) as u64;
+            let hash_function = &self.hash_functions[i];
+            let index : u64 = hash_function.tabulation_hashing(element) % self.block_size as u64;
             block[(index / 8) as usize] |= 1 << (index % 8);
         }
     }
@@ -94,9 +83,8 @@ impl BlockedBloomFilter {
         let block = self.blocks.get_mut(block_id).unwrap();
 
         for i in 1..self.num_hashes {
-            let hash_function = self.hash_functions[i];
-            let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
-                                           hash_function.2) % self.block_size as u32) as u64;
+            let hash_function = &self.hash_functions[i];
+            let index : u64 = hash_function.tabulation_hashing(element) % self.block_size as u64;
             let mask = 1 << (index % 8);
             if !((block[(index / 8) as usize] & mask)!= 0) {
                 return false;

@@ -5,7 +5,6 @@ mod xorfilter;
 mod bitvector;
 mod blockedbloomfilter;
 mod utils;
-mod dleftcountingfilter;
 mod registeralignedbloomfilter;
 mod threewisebinaryfusefilter32;
 mod simdblockedbloomfilter;
@@ -18,26 +17,97 @@ mod ribbonfilter;
 mod registeralignedlarger;
 mod tabulationhashing;
 mod keygenerator;
+#[path = "tabulation/bloomfilter.rs"]
+mod btab;
+#[path = "tabulation/countingbloomfilter.rs"]
+mod cbtab;
+#[path = "tabulation/blockedbloomfilter.rs"]
+mod bbtab;
+#[path = "tabulation/registeralignedbloomfilter.rs"]
+mod rabtab;
+#[path = "tabulation/cuckoofilter.rs"]
+mod ctab;
+#[path = "tabulation/XorFilter8.rs"]
+mod xtab;
+#[path = "tabulation/threewisebinaryfusefilter8.rs"]
+mod bftab;
+#[path = "tabulation/fpr.rs"]
+mod fprtab;
+
+#[path = "fasthash/bloomfilter.rs"]
+mod bffast;
+#[path = "fasthash/countingbloomfilter.rs"]
+mod cbffast;
+#[path = "fasthash/blockedbloomfilter.rs"]
+mod bbffast;
+#[path = "fasthash/registeralignedbloomfilter.rs"]
+mod rabbffast;
+#[path = "fasthash/fpr.rs"]
+mod fprfast;
 
 extern crate rand;
 
 
 
 use rand::Rng;
+use rand::seq::index::sample;
 
 
 fn main() {
+    // let mut keys = vec![];
+    // for i in 0..100000 {
+    //     keys.push(i);
+    // }
+    // let mut bf = btab::BloomFilter::new(10000,0.01);
+    // let mut cf = ctab::CuckooFilter::new(10000,1000,10);
+    // let mut cbf = cbtab::CountingBloomFilter::new(10000,0.01);
+    // let mut bbf = bbtab::BlockedBloomFilter::new(10000,512,0.01);
+    // let mut rab = rabtab::RegisterAlignedBloomFilter::new(10000,64,0.01);
+    // // let mut xf = xtab::XorFilter::new(keys.clone());
+    // // let mut binf = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys.clone());
+    // // let mut bff = bftab::ThreeWiseBinaryFuseFilter8::new(keys.clone());
+    // let mut bffast = bffast::BloomFilter::new(10000,0.01);
+    // let mut cbffast = cbffast::CountingBloomFilter::new(10000,0.01);
+    // let mut bbffast = bbffast::BlockedBloomFilter::new(10000,512,0.01);
+    // let mut rabbffast = rabbffast::RegisterAlignedBloomFilter::new(10000,64,0.01);
+    //
+    // for i in 0..=10000 {
+    //     bf.insert(i);
+    //     cf.insert(i);
+    //     cbf.insert(i);
+    //     bbf.insert(i);
+    //     rab.insert(i);
+    //     bffast.insert(i);
+    //     cbffast.insert(i);
+    //     bbffast.insert(i);
+    //     rabbffast.insert(i);
+    // }
+    //
+    //
+    // for i in 0..=10000 {
+    //     println!("Contains '{}': {}", i, bf.member(i));
+    // }
+
+
+
+
     // let mut keygen = keygenerator::KeyGenerator::new(100);
     // keygen.write_to_file().expect("TODO: panic message");
     // let mut blank_keygen = keygenerator::KeyGenerator::new_empty();
     // blank_keygen.read_from_file().expect("TODO: panic message");
     // println!("{:?}", keygen.random);
     // println!("{:?}", blank_keygen.random);
+    let sample_size = 1024;
 
 
+    fpr::run_fpr_tests(sample_size);
+    // fpr::run_randomised_fpr_tests(sample_size);
 
-    // fpr::run_fpr_tests(100000);
-    // fpr::run_randomised_fpr_tests(100000);
+    fprtab::run_fpr_tests(sample_size);
+    // fprtab::run_randomised_fpr_tests(sample_size);
+
+    fprfast::run_fpr_tests(sample_size);
+    // fprfast::run_randomised_fpr_tests(sample_size);
 
     //,1000,10000,100000,1000000,10000000,100000000
     // let sample_sizes: Vec<u64> = vec![10,100,1000,10000,100000,1000000,100000000];
@@ -63,10 +133,7 @@ fn main() {
     //     fpr::register_aligned_bloom_filter_larger_fpr(size,0.01,&keys);
     // }
     //
-    // let mut keys = Vec::new();
-    // for i in 0..=10000 {
-    //     keys.push(i as u64);
-    // }
+
 
     // let binaryfusefilter = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys);
     //

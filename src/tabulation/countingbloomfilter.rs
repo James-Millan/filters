@@ -1,13 +1,21 @@
 
 use rand::Rng;
 
+#[path = "../bitvector.rs"]
+mod bitvector;
 
-#[path="utils.rs"]
+#[path = "../utils.rs"]
 mod utils;
+
+#[path = "tabulationhashing.rs"]
+mod tabulationhashing;
+
+use tabulationhashing::TabulationHashing;
+
 
 pub struct CountingBloomFilter {
     pub(crate) count_array: Vec<u8>,
-    hash_functions: Vec<(u64,u64,u64)>,
+    hash_functions: Vec<TabulationHashing>,
     size: u64,
     l: u32,
 }
@@ -26,14 +34,10 @@ impl CountingBloomFilter {
         }
     }
 
-    fn generate_hash_functions(n: usize, _m: u64) -> Vec<(u64, u64,u64)> {
-        let mut rng = rand::thread_rng();
+    fn generate_hash_functions(n: usize, _m: u64) -> Vec<TabulationHashing> {
         let mut hash_functions = Vec::new();
         for _ in 0..n {
-            let a1: u64 = rng.gen_range(1..=u64::MAX );
-            let a2: u64 = rng.gen_range(1..=u64::MAX);
-            let b: u64 = rng.gen_range(1..=u64::MAX);
-            hash_functions.push((a1,a2,b));
+            hash_functions.push(TabulationHashing::new());
         }
         return hash_functions;
     }
@@ -44,14 +48,14 @@ impl CountingBloomFilter {
     // requires a mutable reference to itself. and a reference to the key.
     pub fn insert(&mut self, key: u64) {
         for hash_function in &self.hash_functions {
-            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (hash_function.tabulation_hashing(key) % self.size) as usize;
             self.count_array[index] = self.count_array[index].saturating_add(1);
         }
     }
 
     pub fn member(&self, key: u64) -> bool {
         for hash_function in &self.hash_functions {
-            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (hash_function.tabulation_hashing(key) % self.size) as usize;
             if self.count_array[index] <= 0 {
                 return false;
             }
@@ -60,14 +64,10 @@ impl CountingBloomFilter {
     }
 
     pub(crate) fn delete(&mut self, key: u64) {
-        if key >= self.size {
-            return
-        }
         for hash_function in &self.hash_functions {
-            let index: usize = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as usize;
+            let index: usize = (hash_function.tabulation_hashing(key) % self.size) as usize;
             self.count_array[index] = self.count_array[index].saturating_sub(1);
         }
-
     }
 }
 

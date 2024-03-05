@@ -3,40 +3,41 @@ mod bloomfilter;
 use std::f64;
 use rand::Rng;
 use slab::Slab;
-use crate::utils::log_base;
 
 #[path = "utils.rs"]
 mod utils;
 
-pub struct RegisterAlignedBloomFilterLarge {
+pub struct RegisterAlignedBloomFilterLarger {
     size: u64,
     blocks: Slab<u64>,
     block_size: usize,
     num_blocks: u64,
+    num_hashes: usize,
     hash_functions: Vec<(u64,u64,u64)>,
     binary_info: (u32,u32)
 }
 
 
-impl RegisterAlignedBloomFilterLarge {
+impl RegisterAlignedBloomFilterLarger {
     // block_size = size of register in bits.
     pub fn new(expected_inserts : u64, block_size: usize, false_positive_rate: f64) -> Self {
-        let mut size: u64 = ((-1.44 * ((expected_inserts) as f64)).ceil()
+        let mut size: u64 = ((-1.44 * (expected_inserts as f64)).ceil()
             * false_positive_rate.log2() + 0.5) as u64 ;
-        size = size * 300;
-        let num_hashes = (-false_positive_rate.log2() + 0.5) as usize;
+        let num_hashes = (-false_positive_rate.log2() + 1.5) as usize;
         let num_blocks = (size + (block_size - 1) as u64) / block_size as u64;
+        size = size * 5;
 
         let mut rng = rand::thread_rng();
         let _a1 = rng.gen_range(1..=u64::MAX);
         let _a2 = rng.gen_range(1..=u64::MAX);
         let _b = rng.gen_range(1..=u64::MAX);
-        let pair = (log_base(num_blocks as f64, 2f64).ceil() as u32, log_base(block_size as f64,2f64).ceil() as u32);
-        RegisterAlignedBloomFilterLarge {
+        let pair = (64 - (num_blocks - 1).leading_zeros(), 64 - (block_size - 1).leading_zeros());
+        RegisterAlignedBloomFilterLarger {
             size,
             blocks: Self::generate_blocks(num_blocks, block_size),
             block_size,
             num_blocks,
+            num_hashes,
             // first hash function is always to find the block.
             hash_functions: Self::generate_hash_functions(num_hashes),
             binary_info: pair
@@ -79,7 +80,8 @@ impl RegisterAlignedBloomFilterLarge {
 
         // compute mask. So only one operation performed on register
         let mut mask: u64 = 0;
-        for hash_function in &self.hash_functions {
+        for i in 1..self.num_hashes {
+            let hash_function = self.hash_functions[i];
             let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
                                            hash_function.2) % self.block_size as u32) as u64;
 
@@ -94,7 +96,8 @@ impl RegisterAlignedBloomFilterLarge {
         let block = self.blocks.get_mut(block_id).unwrap();
         // compute mask. So only one operation performed on register
         let mut mask: u64 = 0;
-        for hash_function in &self.hash_functions {
+        for i in 1..self.num_hashes {
+            let hash_function = self.hash_functions[i];
             let index : u64 = (utils::hash(element, self.binary_info.1, hash_function.0, hash_function.1,
                                            hash_function.2) % self.block_size as u32) as u64;
             mask |= 1 << index;
