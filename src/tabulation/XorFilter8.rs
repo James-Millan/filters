@@ -42,11 +42,11 @@ impl XorFilter {
             self.hashes = hash_functions;
             if self.mapping(&keys) {
                 finished = true;
-                println!("mapping succeeded!");
+                //println!("mapping succeeded!");
                 self.assign();
             }
             else {
-                println!("mapping failed");
+                //println!("mapping failed");
             }
         }
     }

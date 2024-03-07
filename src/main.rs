@@ -54,16 +54,33 @@ use rand::seq::index::sample;
 
 
 fn main() {
-    // let mut keys = vec![];
-    // for i in 0..100000 {
-    //     keys.push(i);
+    let mut keys = vec![];
+    for i in 0..10000000 {
+        keys.push(i);
+    }
+    // let t1 = tabulationhashing::TabulationHashing::new();
+    // let t2 = tabulationhashing::TabulationHashing::new();
+    // let t3 = tabulationhashing::TabulationHashing::new();
+    // let mut i = 0;
+    // let mut res = vec![];
+    // loop {
+    //     let hashes = (t1.tabulation_hashing(i),t2.tabulation_hashing(i),t3.tabulation_hashing(i));
+    //     if !res.contains(&hashes) {
+    //         res.push(hashes);
+    //     }
+    //     else {
+    //         println!("{}", i);
+    //         break;
+    //     }
+    //     println!("{}", i);
+    //     i = i + 1;
     // }
     // let mut bf = btab::BloomFilter::new(10000,0.01);
     // let mut cf = ctab::CuckooFilter::new(10000,1000,10);
     // let mut cbf = cbtab::CountingBloomFilter::new(10000,0.01);
     // let mut bbf = bbtab::BlockedBloomFilter::new(10000,512,0.01);
     // let mut rab = rabtab::RegisterAlignedBloomFilter::new(10000,64,0.01);
-    // // let mut xf = xtab::XorFilter::new(keys.clone());
+    let mut xf = xtab::XorFilter::new(keys.clone());
     // // let mut binf = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys.clone());
     // // let mut bff = bftab::ThreeWiseBinaryFuseFilter8::new(keys.clone());
     // let mut bffast = bffast::BloomFilter::new(10000,0.01);
@@ -84,9 +101,9 @@ fn main() {
     // }
     //
     //
-    // for i in 0..=10000 {
-    //     println!("Contains '{}': {}", i, bf.member(i));
-    // }
+    for i in 0..=10000000 {
+        println!("Contains '{}': {}", i, xf.member(i));
+    }
 
 
 
@@ -97,16 +114,16 @@ fn main() {
     // blank_keygen.read_from_file().expect("TODO: panic message");
     // println!("{:?}", keygen.random);
     // println!("{:?}", blank_keygen.random);
-    let sample_size = 1024;
-
-
-    fpr::run_fpr_tests(sample_size);
-    // fpr::run_randomised_fpr_tests(sample_size);
-
-    fprtab::run_fpr_tests(sample_size);
-    // fprtab::run_randomised_fpr_tests(sample_size);
-
-    fprfast::run_fpr_tests(sample_size);
+    // let sample_size = 1024;
+    //
+    //
+    // fpr::run_fpr_tests(sample_size);
+    // // fpr::run_randomised_fpr_tests(sample_size);
+    //
+    // fprtab::run_fpr_tests(sample_size);
+    // // fprtab::run_randomised_fpr_tests(sample_size);
+    //
+    // fprfast::run_fpr_tests(sample_size);
     // fprfast::run_randomised_fpr_tests(sample_size);
 
     //,1000,10000,100000,1000000,10000000,100000000
