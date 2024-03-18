@@ -9,6 +9,10 @@ struct HashInfo {
 }
 
 
+pub(crate) fn map(x:u64, n:u64) -> u64 {
+    return x % n;
+}
+
 // x is key to be hashed. l is binary log of filter size. a1,a2,b random u64s.
 pub(crate) fn hash(x: u64, l: u32, a1: u64, a2: u64, b: u64) -> u32 {
     //return (((a1 + x) * (a2 + (x >> 32)) + b) >> (64 - l)) as usize

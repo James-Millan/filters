@@ -44,19 +44,55 @@ mod bbffast;
 mod rabbffast;
 #[path = "fasthash/fpr.rs"]
 mod fprfast;
+mod mortonfilter;
+mod MortonBlock;
 
 extern crate rand;
 
 
-
+use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use rand::Rng;
 use rand::seq::index::sample;
 
 
 fn main() {
     let mut keys = vec![];
-    for i in 0..10000000 {
+    for i in 0..100 {
         keys.push(i);
+    }
+    let size = 100;
+
+    let mut m = mortonfilter::MortonFilter::new(size, 0.01);
+    // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
+    // let mut nums = vec![];
+    let mut vals = HashMap::new();
+    for i in 0..size {
+        m.insert(i);
+        vals.insert(i,m.fingerprint(i));
+        // c.insert(i);
+    }
+    // m.insert(10);
+    // m.insert(10);
+    // m.insert(10);
+    // m.insert(10);
+    // m.insert(10);
+    // m.insert(10);
+
+    // println!("contains: {}, {}", 10, m.member(10));
+
+    // let mut fin = vec![];
+    m.delete(10);
+    m.delete(23);
+
+    for i in 0..=size
+    {
+        // fin.push(m.fingerprint(i));
+        // println!("{}", m.fingerprint(i));
+        // m.delete(i);
+        if (!m.member(i)){
+            println!("contains: {}, {}, {:?}", i, m.member(i), vals.get(&i));
+        }
+
     }
     // let t1 = tabulationhashing::TabulationHashing::new();
     // let t2 = tabulationhashing::TabulationHashing::new();
@@ -80,7 +116,7 @@ fn main() {
     // let mut cbf = cbtab::CountingBloomFilter::new(10000,0.01);
     // let mut bbf = bbtab::BlockedBloomFilter::new(10000,512,0.01);
     // let mut rab = rabtab::RegisterAlignedBloomFilter::new(10000,64,0.01);
-    let mut xf = xtab::XorFilter::new(keys.clone());
+    // let mut xf = xtab::XorFilter::new(keys.clone());
     // // let mut binf = threewisebinaryfusefilter32::ThreeWiseBinaryFuseFilter32::new(keys.clone());
     // // let mut bff = bftab::ThreeWiseBinaryFuseFilter8::new(keys.clone());
     // let mut bffast = bffast::BloomFilter::new(10000,0.01);
@@ -101,9 +137,9 @@ fn main() {
     // }
     //
     //
-    for i in 0..=10000000 {
-        println!("Contains '{}': {}", i, xf.member(i));
-    }
+    // for i in 0..=1000000 {
+    //     println!("Contains '{}': {}", i, xf.member(i));
+    // }
 
 
 

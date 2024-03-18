@@ -46,7 +46,7 @@ impl XorFilter {
                 self.assign();
             }
             else {
-                //println!("mapping failed");
+                println!("mapping failed");
             }
         }
     }
