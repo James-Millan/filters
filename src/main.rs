@@ -46,6 +46,8 @@ mod rabbffast;
 mod fprfast;
 mod mortonfilter;
 mod MortonBlock;
+mod quotientfilter;
+mod quotientinfo;
 
 extern crate rand;
 
@@ -60,16 +62,20 @@ fn main() {
     for i in 0..100 {
         keys.push(i);
     }
-    let size = 100;
+    let size = 10000;
 
     let mut m = mortonfilter::MortonFilter::new(size, 0.01);
+    let mut q = quotientfilter::QuotientFilter::new(size);
     // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
     // let mut nums = vec![];
-    let mut vals = HashMap::new();
-    for i in 0..size {
-        m.insert(i);
-        vals.insert(i,m.fingerprint(i));
+    // let mut vals = HashMap::new();
+    for i in 0..9000 {
+        q.insert(i);
+        // vals.insert(i,m.fingerprint(i));
         // c.insert(i);
+    }
+    for i in 0..=9000 {
+        println!("contains: {}, {}", i, q.member(i));
     }
     // m.insert(10);
     // m.insert(10);
@@ -81,19 +87,19 @@ fn main() {
     // println!("contains: {}, {}", 10, m.member(10));
 
     // let mut fin = vec![];
-    m.delete(10);
-    m.delete(23);
-
-    for i in 0..=size
-    {
-        // fin.push(m.fingerprint(i));
-        // println!("{}", m.fingerprint(i));
-        // m.delete(i);
-        if (!m.member(i)){
-            println!("contains: {}, {}, {:?}", i, m.member(i), vals.get(&i));
-        }
-
-    }
+    // m.delete(10);
+    // m.delete(23);
+    //
+    // for i in 0..=size
+    // {
+    //     // fin.push(m.fingerprint(i));
+    //     // println!("{}", m.fingerprint(i));
+    //     // m.delete(i);
+    //     if (!m.member(i)){
+    //         println!("contains: {}, {}, {:?}", i, m.member(i), vals.get(&i));
+    //     }
+    //
+    // }
     // let t1 = tabulationhashing::TabulationHashing::new();
     // let t2 = tabulationhashing::TabulationHashing::new();
     // let t3 = tabulationhashing::TabulationHashing::new();
