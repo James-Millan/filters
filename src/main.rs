@@ -62,21 +62,50 @@ fn main() {
     for i in 0..100 {
         keys.push(i);
     }
-    let size = 10000;
+    let size = 1000;
 
     let mut m = mortonfilter::MortonFilter::new(size, 0.01);
     let mut q = quotientfilter::QuotientFilter::new(size);
     // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
     // let mut nums = vec![];
     // let mut vals = HashMap::new();
-    for i in 0..9000 {
-        q.insert(i);
-        // vals.insert(i,m.fingerprint(i));
-        // c.insert(i);
+
+    for i in 0..size {
+        m.insert(i);
     }
-    for i in 0..=9000 {
-        println!("contains: {}, {}", i, q.member(i));
+
+    for i in 0..size {
+        println!("contains: {}, {}", i, m.member(i));
     }
+
+    // for j in 1..2 {
+    //     let mut q = quotientfilter::QuotientFilter::new(size);
+    //     for i in 0..10 {
+    //         q.insert(i);
+    //         for j in 0..=i {
+    //             if !q.member(j) {
+    //                 println!("contains: {}, {}", j, q.member(j));
+    //             }
+    //         }
+    //         // println!("contains: {}, {}", i, q.member(i));
+    //         // vals.insert(i,m.fingerprint(i));
+    //         // c.insert(i);
+    //     }
+    // }
+
+    // let mut nums = Vec::new();
+    // for i in 0..size {
+    //     if (q.insert(i)) {
+    //         nums.push(i);
+    //     }
+    // }
+    //
+    //
+    // for i in nums {
+    //     println!("contains: {}, {}", i, q.member(i));
+    // }
+
+
     // m.insert(10);
     // m.insert(10);
     // m.insert(10);
