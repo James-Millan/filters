@@ -37,7 +37,8 @@ impl CuckooFilter {
         return (a1, a2, b);
     }
     
-    fn fingerprint(key: u64) -> u8 {
+    fn fingerprint(&self, key: u64) -> u8 {
+        return utils::hash(key, self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) as u8;
         return fastmurmur3::hash(&key.to_ne_bytes()) as u8;
         //return murmur3_x64_128(&mut b"{key}", seed).unwrap() as u32;
     }
@@ -55,7 +56,7 @@ impl CuckooFilter {
     }
 
     pub fn insert(&mut self, key: u64) -> bool {
-        let mut f = Self::fingerprint(key) as u64;
+        let mut f = self.fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
 
@@ -93,7 +94,7 @@ impl CuckooFilter {
     }
 
     pub fn member(&self, key: u64) -> bool {
-        let f = Self::fingerprint(key) as u64;
+        let f = self.fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
         for j in 0..self.bucket_size {
@@ -105,7 +106,7 @@ impl CuckooFilter {
     }
 
     pub(crate) fn delete(&mut self, key: u64) -> bool {
-        let f = Self::fingerprint(key) as u64;
+        let f = self.fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;
         for j in 0..self.bucket_size {
