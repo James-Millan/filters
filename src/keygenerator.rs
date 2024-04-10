@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use rand::prelude::SliceRandom;
 use rand::Rng;
-
+pub static SAMPLE_SIZE: u64 = 100000;
 pub struct KeyGenerator {
     pub random: (Vec<u64>, Vec<u64>),
     pub disjoint: (Vec<u64>, Vec<u64>),
@@ -159,6 +159,34 @@ impl KeyGenerator {
                 .collect();
             self.mixed = (first_vec,second_vec);
         }
+
+        // let required_size = 3000000;
+        //
+        // while self.mixed.1.len() < required_size {
+        //     let len = self.mixed.1.len();
+        //     {
+        //         let cloned_elements: Vec<_> = self.mixed.1[..len].iter().cloned().collect();
+        //         self.mixed.1.extend(cloned_elements);
+        //     }
+        // }
+        //
+        // while self.disjoint.1.len() < required_size {
+        //     let len = self.disjoint.1.len();
+        //     {
+        //         let cloned_elements: Vec<_> = self.disjoint.1[..len].iter().cloned().collect();
+        //         self.disjoint.1.extend(cloned_elements);
+        //     }
+        // }
+        //
+        // while self.random.1.len() < required_size {
+        //     let len = self.random.1.len();
+        //     {
+        //         let cloned_elements: Vec<_> = self.random.1[..len].iter().cloned().collect();
+        //         self.random.1.extend(cloned_elements);
+        //     }
+        // }
+
+
         return Ok(());
     }
 }

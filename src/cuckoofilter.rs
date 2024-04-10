@@ -2,12 +2,11 @@
 use fastmurmur3;
 
 use rand::Rng;
-use crate::cuckoofilter::utils::log_base;
 
 #[path="utils.rs"]
 mod utils;
 
-pub(crate) struct CuckooFilter {
+pub struct CuckooFilter {
     pub(crate) buckets: Vec<Vec<u8>>,
     bucket_count: usize,
     bucket_size: usize,
@@ -18,13 +17,13 @@ pub(crate) struct CuckooFilter {
 }
 
 impl CuckooFilter {
-    pub(crate) fn new(bucket_count: usize, max_kicks: usize, bucket_size: usize) -> Self {
+    pub fn new(bucket_count: usize, max_kicks: usize, bucket_size: usize) -> Self {
         CuckooFilter {
             buckets: vec![vec![0; bucket_size]; bucket_count],
             bucket_count,
             bucket_size,
             max_kicks,
-            l: log_base(bucket_count as f64, 2f64) as u32,
+            l: utils::log_base(bucket_count as f64, 2f64) as u32,
             hash_coefficients: Self::get_hash_coefficients(),
             full: false
         }

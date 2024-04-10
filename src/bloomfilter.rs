@@ -55,7 +55,7 @@ impl BloomFilter {
         }
     }
 
-    pub(crate) fn member(&self, key: u64) -> bool {
+    pub fn member(&self, key: u64) -> bool {
         for hash_function in &self.hash_functions {
             let index: u64 = (utils::hash(key, self.l, hash_function.0, hash_function.1, hash_function.2) % self.size as u32) as u64;
             if !self.bit_array.member(index) {

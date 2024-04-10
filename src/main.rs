@@ -7,13 +7,11 @@ mod blockedbloomfilter;
 mod utils;
 mod registeralignedbloomfilter;
 mod threewisebinaryfusefilter32;
-mod simdblockedbloomfilter;
-mod fourwisebinaryfusefilter;
+mod fourwisebinaryfusefilter32;
 mod threewisebinaryfusefilter16;
 mod threewisebinaryfusefilter8;
 mod fpr;
 mod XorFilter8;
-mod ribbonfilter;
 mod registeralignedlarger;
 mod tabulationhashing;
 mod keygenerator;
@@ -48,6 +46,8 @@ mod mortonfilter;
 mod MortonBlock;
 mod quotientfilter;
 mod quotientinfo;
+mod fourwisebinaryfusefilter8;
+mod fourwisebinaryfusefilter16;
 
 extern crate rand;
 
@@ -55,6 +55,7 @@ extern crate rand;
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use rand::Rng;
 use rand::seq::index::sample;
+use crate::rabtab::RegisterAlignedBloomFilter;
 
 
 fn main() {
@@ -62,21 +63,23 @@ fn main() {
     for i in 0..100 {
         keys.push(i);
     }
-    let size = 1000;
+    let size = 100000;
 
     let mut m = mortonfilter::MortonFilter::new(size, 0.01);
     let mut q = quotientfilter::QuotientFilter::new(size);
+    let mut r = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size, 64, 0.01);
+    // let mur n = registeralignedbloomfilter::RegisterAlignedBloomFilter(size,64,0.01);
     // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
     // let mut nums = vec![];
     // let mut vals = HashMap::new();
 
-    for i in 0..size {
-        m.insert(i);
-    }
+    // for i in 0..size {
+    //     q.member(i);
+    // }
 
-    for i in 0..size {
-        println!("contains: {}, {}", i, m.member(i));
-    }
+    // for i in 0..size {
+    //     println!("contains: {}, {}", i, q.member(i));
+    // }
 
     // for j in 1..2 {
     //     let mut q = quotientfilter::QuotientFilter::new(size);

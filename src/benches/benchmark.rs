@@ -11,7 +11,10 @@ use bloomfilter::BloomFilter;
 use crate::blockedbloomfilter::BlockedBloomFilter;
 use crate::countingbloomfilter::CountingBloomFilter;
 use crate::cuckoofilter::CuckooFilter;
+use crate::mortonfilter::MortonFilter;
 use crate::registeralignedbloomfilter::RegisterAlignedBloomFilter;
+use std::time::{Duration, Instant};
+
 
 #[path = "../keygenerator.rs"]
 mod keygenerator;
@@ -29,14 +32,12 @@ mod countingbloomfilter;
 
 #[path = "../registeralignedbloomfilter.rs"]
 mod registeralignedbloomfilter;
-#[path = "../simdblockedbloomfilter.rs"]
-mod simdblockedbloomfilter;
 #[path = "../xorfilter.rs"]
 mod xorfilter;
 
 #[path = "../threewisebinaryfusefilter32.rs"]
 mod binaryfusefiter3;
-#[path = "../fourwisebinaryfusefilter.rs"]
+#[path = "../fourwisebinaryfusefilter32"]
 mod binaryfusefiter4;
 
 #[path = "../tabulation/bloomfilter.rs"]
@@ -44,7 +45,20 @@ mod btab;
 #[path = "../fasthash/bloomfilter.rs"]
 mod bfast;
 
-static SAMPLE_SIZE: u64 = 1000000;
+#[path = "../mortonfilter.rs"]
+mod mortonfilter;
+
+#[path = "../quotientfilter.rs"]
+mod quotientfilter;
+mod bloom_benchmarks;
+mod counting_bloom_benchmarks;
+mod blocked_bloom_benchmarks;
+mod register_aligned_bloom_benchmarks;
+mod cuckoo_benchmarks;
+mod xor8_benchmarks;
+mod xor32_benchmarks;
+
+static SAMPLE_SIZE: u64 = 100000;
 // let DISJOINT_KEYS:(Vec<u64>, Vec<u64>) = ((0..SAMPLE_SIZE).collect(),(SAMPLE_SIZE..2*SAMPLE_SIZE).collect());
 // let MIXED_KEYS:(Vec<u64>, Vec<u64>) = generate_mixed_keys(SAMPLE_SIZE);
 // let UNIFORM_KEYS: Vec<u64> = (0..SAMPLE_SIZE).collect();
@@ -129,6 +143,8 @@ fn bench_bloom_filter_member_fast(c: &mut Criterion) {
 }
 
 fn bench_bloom_filter_random_member(c: &mut Criterion) {
+
+    // setup
     let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
     let mut keys = keygenerator::KeyGenerator::new_empty();
     keys.read_from_file().expect("");
@@ -137,16 +153,26 @@ fn bench_bloom_filter_random_member(c: &mut Criterion) {
     for j in random_keys.0 {
         bloom_filter.borrow_mut().insert(j);
     }
-    let mut i: usize = 0;
+
+    // custom benchmarking function.
     c.bench_function("bench_bloom_filter_random_member", |b| {
-        b.iter(|| {
-            bloom_filter.borrow_mut().member(random_keys.1[i]);
-            i = ((i + 1usize) % SAMPLE_SIZE as usize) as usize;
-            //stop it being optimized by the compiler
-            //black_box(bloom_filter);
+        b.iter_custom(|iters| {
+            let mut num_runs = (iters as f64 / SAMPLE_SIZE as f64).ceil() as u64;
+            if num_runs < 1 {
+                num_runs = 1;
+            }
+            let start = Instant::now();
+            for _ in 0..num_runs {
+                for i in 0..(SAMPLE_SIZE as usize) {
+                    black_box(bloom_filter.borrow().member(random_keys.1[i]));
+                    // bloom_filter.borrow().member(random_keys.1[i]);
+                }
+            }
+            return start.elapsed();
         });
     });
 }
+
 fn bench_bloom_filter_disjoint_member(c: &mut Criterion) {
     let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
     let mut keys = keygenerator::KeyGenerator::new_empty();
@@ -815,15 +841,48 @@ fn setup3(c: &mut Criterion) {
     // group.finish();
 }
 
+fn bench_quotient_filter_member(c: &mut Criterion) {
+    let mut quotient_filter = RefCell::new(quotientfilter::QuotientFilter::new(SAMPLE_SIZE));
+
+    for j in 0..SAMPLE_SIZE {
+        quotient_filter.borrow_mut().insert(j);
+    }
+    let mut i: usize = 0;
+    c.bench_function("bench_quotient_filter_member", |b| {
+        b.iter(|| {
+            quotient_filter.borrow_mut().member(i as u64);
+            i = i + 1;
+        });
+    });
+}
+
+fn bench_morton_filter_member(c: &mut Criterion) {
+    let mut morton_filter = RefCell::new(mortonfilter::MortonFilter::new(SAMPLE_SIZE, 0.01));
+    let insert_size: u64 = (0.94f64 * (SAMPLE_SIZE as f64)).floor() as u64;
+    for j in 0..SAMPLE_SIZE {
+        morton_filter.borrow_mut().insert(j);
+    }
+    let mut i: usize = 0;
+    c.bench_function("bench_morton_filter_member", |b| {
+        b.iter(|| {
+            morton_filter.borrow_mut().member(i as u64);
+            i = i + 1;
+        });
+    });
+}
+
+
+
 //criterion_group!(current_benches,setup);
 criterion_group!(benches,
     setup,
     // bench_bloom_filter_insert,
-    bench_bloom_filter_member,
-    bench_bloom_filter_member_tab,
-    bench_bloom_filter_member_fast
-    // bench_bloom_filter_random_member, bench_bloom_filter_disjoint_member,
-    // bench_bloom_filter_mixed_member, bench_cuckoo_filter_member, bench_cuckoo_filter_random_member,
+    // bench_bloom_filter_member,
+    // bench_bloom_filter_member_tab,
+    // bench_bloom_filter_member_fast,
+    // bench_quotient_filter_member,
+    // bench_morton_filter_member
+    bench_bloom_filter_random_member, bench_bloom_filter_disjoint_member
     // bench_cuckoo_filter_disjoint_member, bench_cuckoo_filter_mixed_member,
     // bench_counting_bloom_filter_insert, bench_counting_bloom_filter_member, bench_counting_bloom_filter_random_member,
     // bench_counting_bloom_filter_disjoint_member, bench_counting_bloom_filter_mixed_member, bench_blocked_bloom_filter_insert

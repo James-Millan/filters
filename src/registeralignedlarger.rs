@@ -91,9 +91,9 @@ impl RegisterAlignedBloomFilterLarger {
     }
 
     // Check if an element is present in the correct block.
-    pub fn member(&mut self, element: u64) -> bool {
+    pub fn member(&self, element: u64) -> bool {
         let block_id = self.get_block_id(element);
-        let block = self.blocks.get_mut(block_id).unwrap();
+        let block = self.blocks.get(block_id).unwrap();
         // compute mask. So only one operation performed on register
         let mut mask: u64 = 0;
         for i in 1..self.num_hashes {

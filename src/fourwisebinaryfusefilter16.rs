@@ -7,8 +7,8 @@ mod utils;
 use utils::hash;
 use utils::log_base;
 
-pub struct FourWiseBinaryFuseFilter {
-    fingerprints: Vec<u32>,
+pub struct FourWiseBinaryFuseFilter16 {
+    fingerprints: Vec<u16>,
     hashes: Vec<(u64,u64,u64)>,
     sigma: Vec<(u64, usize)>,
     size: u64,
@@ -17,9 +17,9 @@ pub struct FourWiseBinaryFuseFilter {
     log_segment: u32,
     num_segments: u64
 }
-impl FourWiseBinaryFuseFilter {
-    pub fn new(keys: &Vec<u64>) -> FourWiseBinaryFuseFilter {
-        let mut filter = FourWiseBinaryFuseFilter {
+impl FourWiseBinaryFuseFilter16 {
+    pub fn new(keys: &Vec<u64>) -> FourWiseBinaryFuseFilter16 {
+        let mut filter = FourWiseBinaryFuseFilter16 {
             fingerprints: vec![],
             hashes: vec![],
             sigma: vec![],
@@ -146,8 +146,8 @@ impl FourWiseBinaryFuseFilter {
         self.sigma = Vec::new();
     }
 
-    pub(crate) fn fingerprint(&self, key: u64) -> u32 {
-        return hash(key,self.l, self.hashes[0].0, self.hashes[0].1, self.hashes[0].2) as u32;
+    pub(crate) fn fingerprint(&self, key: u64) -> u16 {
+        return hash(key,self.l, self.hashes[0].0, self.hashes[0].1, self.hashes[0].2) as u16;
     }
 
     fn segmented_hash(&self, key: u64) -> (u32, u32, u32,u32) {

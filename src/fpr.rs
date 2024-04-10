@@ -112,7 +112,7 @@ pub(crate) fn binary_fuse_filter_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
 }
 
 pub(crate) fn binary_fuse_filter_8_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
-    let mut binary_fuse_filter = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter32::new(keys.clone());
+    let mut binary_fuse_filter = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter8::new(keys.clone());
     let mut count: f64 = 0f64;
     let mut fp: f64 = 0f64;
     for i in lookup_keys {

@@ -1,7 +1,11 @@
 use rand::Rng;
-use crate::MortonBlock::MortonBlock;
-use crate::utils;
-use crate::utils::{hash};
+
+#[path = "mortonblock.rs"]
+mod mortonblock;
+use mortonblock::MortonBlock;
+#[path = "utils.rs"]
+mod utils;
+use utils::{hash};
 
 const BUCKETS_PER_BLOCK: u32 = 46;
 const OFF_RANGE: u32 = 64;
@@ -16,7 +20,7 @@ pub struct MortonFilter {
 
 impl MortonFilter {
     pub fn new(size : u64, fpr: f64) -> MortonFilter {
-        let length = size * 2;
+        let length = (1.1f64 * size as f64) as u64;
         let n = length * BUCKETS_PER_BLOCK as u64;
         return MortonFilter {
             block_store: Self::generate_block_store(length),
@@ -91,7 +95,7 @@ impl MortonFilter {
             let overflow_check = ((block2.fca.member(2 * lbi2 as u64) as u32 & 1u32) + (2* (block2.fca.member((2 * lbi2 + 1) as u64) as u32 & 1u32)));
             if off2 >= BUCKETS_PER_BLOCK || overflow_check >= 3 {
                 // perform eviction
-                println!("eviction needed, {}", x);
+                // println!("eviction needed, {}", x);
                 let mut num_kicks = 0;
                 let mut finished = false;
                 let mut offset = off;
@@ -105,7 +109,7 @@ impl MortonFilter {
                     // select a key to evict and update fsa with new key.
                     let mut fsa: &mut Vec<u8> = &mut block.fsa;
                     let evicted_key = fsa[offset as usize];
-                    println!("eviction needed, {}, {}", x, evicted_key);
+                    //println!("eviction needed, {}, {}", x, evicted_key);
 
                     fsa[offset as usize] = f;
                     f = evicted_key;
@@ -135,7 +139,7 @@ impl MortonFilter {
                     //check FCA isn't full
                     let check = ((block.fca.member(2 * local_index as u64) as u32 & 1u32) + (2* (block.fca.member((2 * local_index + 1) as u64) as u32 & 1u32)));
                     if offset >= BUCKETS_PER_BLOCK || check >= 3 {
-                        println!("need to evict again");
+                        //println!("need to evict again");
                     }
                     else {
                         // println!("evicted successfully");
@@ -148,7 +152,7 @@ impl MortonFilter {
                         if fca.member((2 * local_index) as u64) {
                             if fca.member((2u64 * local_index as u64) + 1) {
                                 // cannot happen
-                                println!("overflow");
+                                // println!("overflow");
                             }
                             else {
                                 fca.insert((2u64 * local_index as u64) + 1);
@@ -171,7 +175,7 @@ impl MortonFilter {
                 if fca.member((2 * lbi2) as u64) {
                     if fca.member((2u64 * lbi2 as u64) + 1) {
                         // cannot happen
-                        println!("overflow");
+                        // println!("overflow");
                     }
                     else {
                         fca.insert((2u64 * lbi2 as u64) + 1);
@@ -194,7 +198,7 @@ impl MortonFilter {
             if fca.member((2 * lbi1) as u64) {
                 if fca.member((2u64 * lbi1 as u64) + 1) {
                     // cannot happen
-                    println!("overflow");
+                    // println!("overflow");
                 }
                 else {
                     fca.insert((2u64 * lbi1 as u64) + 1);
@@ -286,38 +290,38 @@ impl MortonFilter {
 
         // ------------------------------------------------------------------------------
 
-        // let f = self.fingerprint(x);
-        // let glbi3 = self.hash_prime(lbi1 as usize, f);
-        // let mut block3 = &self.block_store[(glbi3/BUCKETS_PER_BLOCK) as usize];
-        // let lbi3 = glbi3 % BUCKETS_PER_BLOCK;
+        let f = self.fingerprint(x);
+        let glbi3 = self.hash_prime(lbi1 as usize, f);
+        let mut block3 = &self.block_store[(glbi3/BUCKETS_PER_BLOCK) as usize];
+        let lbi3 = glbi3 % BUCKETS_PER_BLOCK;
+
+        // calculate offset.
+        let mut off3: usize = 0;
+        let mut i: usize = 0;
+        loop {
+            if i > (2 * lbi3) as usize {
+                break;
+            }
+            off3 += ((block3.fca.member(i as u64) as u32 & 1u32) + (2* (block3.fca.member((i + 1) as u64) as u32 & 1u32))) as usize;
+            i+=2;
+        }
+        // println!("{}", off);
         //
-        // // calculate offset.
-        // let mut off3: usize = 0;
-        // let mut i: usize = 0;
-        // loop {
-        //     if i > (2 * lbi3) as usize {
-        //         break;
-        //     }
-        //     off3 += ((block3.fca.member(i as u64) as u32 & 1u32) + (2* (block3.fca.member((i + 1) as u64) as u32 & 1u32))) as usize;
-        //     i+=2;
+        let mut num_in_bucket = block3.fca.member(2 * lbi3 as u64) as u32 & 1u32 + 2 * (block3.fca.member(((2 * lbi3) + 1) as u64) as u32 & 1u32);
+        // println!("{:?}, {}, {}, {}, {}", block1.fsa, f, off, num_in_bucket, block1.fsa[off]);
+        // if num_in_bucket == 0 {
+        //     println!("mistake in num in bucket v1");
+        //     num_in_bucket = 1;
         // }
-        // // println!("{}", off);
-        // //
-        // let mut num_in_bucket = block3.fca.member(2 * lbi3 as u64) as u32 & 1u32 + 2 * (block3.fca.member(((2 * lbi3) + 1) as u64) as u32 & 1u32);
-        // // println!("{:?}, {}, {}, {}, {}", block1.fsa, f, off, num_in_bucket, block1.fsa[off]);
-        // // if num_in_bucket == 0 {
-        // //     println!("mistake in num in bucket v1");
-        // //     num_in_bucket = 1;
-        // // }
-        // off3 = off3.saturating_sub(2);
-        // off3 = off3.saturating_sub(num_in_bucket as usize);
-        //
-        // for j in off3..=(off3+num_in_bucket as usize + 2) {
-        //     if block3.fsa[j] == f {
-        //         println!("-------------------------------------------------------------------");
-        //         return true;
-        //     }
-        // }
+        off3 = off3.saturating_sub(2);
+        off3 = off3.saturating_sub(num_in_bucket as usize);
+
+        for j in off3..=(off3+num_in_bucket as usize + 2) {
+            if block3.fsa[j] == f {
+                // println!("-------------------------------------------------------------------");
+                return true;
+            }
+        }
         // everything check has failed. item not in filter.
         // if block2.fsa.contains(&f) {
         //    println!("block 2 has it");

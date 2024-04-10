@@ -1,4 +1,7 @@
-use crate::bitvector::BitVector;
+#[path = "bitvector.rs"]
+mod bitvector;
+
+use bitvector::BitVector;
 pub struct MortonBlock {
     pub(crate) fsa: Vec<u8>,
     pub(crate) fca: BitVector,

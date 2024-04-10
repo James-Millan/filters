@@ -7,7 +7,7 @@ mod utils;
 use utils::hash;
 use utils::log_base;
 
-pub struct ThreeWiseBinaryFuseFilter32 {
+pub struct ThreeWiseBinaryFuseFilter16 {
     fingerprints: Vec<u16>,
     hashes: Vec<(u64,u64,u64)>,
     sigma: Vec<(u64, usize)>,
@@ -17,9 +17,9 @@ pub struct ThreeWiseBinaryFuseFilter32 {
     log_segment: u32,
     num_segments: u64,
 }
-impl ThreeWiseBinaryFuseFilter32 {
-    pub fn new(keys: Vec<u64>) -> ThreeWiseBinaryFuseFilter32 {
-        let mut filter = ThreeWiseBinaryFuseFilter32 {
+impl ThreeWiseBinaryFuseFilter16 {
+    pub fn new(keys: Vec<u64>) -> ThreeWiseBinaryFuseFilter16 {
+        let mut filter = ThreeWiseBinaryFuseFilter16 {
             fingerprints: vec![],
             hashes: vec![],
             sigma: vec![],
