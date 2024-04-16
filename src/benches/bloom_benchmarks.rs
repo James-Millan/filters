@@ -39,8 +39,14 @@ fn bench_bloom_filter_uniform_member(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_uniform_member", |b| {
         b.iter_custom(|iters| {
             let mut num_runs = (iters as f64 / SAMPLE_SIZE as f64).ceil() as u64;
-            if num_runs < 1 {
-                num_runs = 1;
+            if num_runs <= 1 {
+                //  just run the for loop form 0 - iters in here.
+                let start = Instant::now();
+                for i in 0..(iters as usize) {
+                    black_box(bloom_filter.borrow().member(disjoint_keys.0[i]));
+                    // xor_filter.borrow().member(random_keys.1[i]);
+                }
+                return start.elapsed();            
             }
             let start = Instant::now();
             for _ in 0..num_runs {
@@ -69,8 +75,14 @@ fn bench_bloom_filter_mixed_member(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_mixed_member", |b| {
         b.iter_custom(|iters| {
             let mut num_runs = (iters as f64 / SAMPLE_SIZE as f64).ceil() as u64;
-            if num_runs < 1 {
-                num_runs = 1;
+            if num_runs <= 1 {
+                //  just run the for loop form 0 - iters in here.
+                let start = Instant::now();
+                for i in 0..(iters as usize) {
+                    black_box(bloom_filter.borrow().member(mixed_keys.1[i]));
+                    // xor_filter.borrow().member(random_keys.1[i]);
+                }
+                return start.elapsed();            
             }
             let start = Instant::now();
             for _ in 0..num_runs {
@@ -99,8 +111,14 @@ fn bench_bloom_filter_disjoint_member(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_disjoint_member", |b| {
         b.iter_custom(|iters| {
             let mut num_runs = (iters as f64 / SAMPLE_SIZE as f64).ceil() as u64;
-            if num_runs < 1 {
-                num_runs = 1;
+            if num_runs <= 1 {
+                //  just run the for loop form 0 - iters in here.
+                let start = Instant::now();
+                for i in 0..(iters as usize) {
+                    black_box(bloom_filter.borrow().member(disjoint_keys.1[i]));
+                    // xor_filter.borrow().member(random_keys.1[i]);
+                }
+                return start.elapsed();            
             }
             let start = Instant::now();
             for _ in 0..num_runs {
@@ -116,7 +134,7 @@ fn bench_bloom_filter_random_member(c: &mut Criterion) {
 
     // setup
     let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
-    let mut keys = keygenerator::KeyGenerator::new_empty();
+    let mut keys = keygenerator::KeyGenerator::new(SAMPLE_SIZE);
     keys.read_from_file().expect("");
     let random_keys = keys.random;
 
@@ -128,8 +146,14 @@ fn bench_bloom_filter_random_member(c: &mut Criterion) {
     c.bench_function("bench_bloom_filter_random_member", |b| {
         b.iter_custom(|iters| {
             let mut num_runs = (iters as f64 / SAMPLE_SIZE as f64).ceil() as u64;
-            if num_runs < 1 {
-                num_runs = 1;
+            if num_runs <= 1 {
+                //  just run the for loop form 0 - iters in here.
+                let start = Instant::now();
+                for i in 0..(iters as usize) {
+                    black_box(bloom_filter.borrow().member(random_keys.1[i]));
+                    // xor_filter.borrow().member(random_keys.1[i]);
+                }
+                return start.elapsed();            
             }
             let start = Instant::now();
             for _ in 0..num_runs {
@@ -143,27 +167,27 @@ fn bench_bloom_filter_random_member(c: &mut Criterion) {
     });
 }
 
-fn bench_bloom_filter_create(c: &mut Criterion) {
-    // setup
-    let mut keys = keygenerator::KeyGenerator::new_empty();
-    keys.read_from_file().expect("");
-    let random_keys = keys.random;
+// fn bench_bloom_filter_create(c: &mut Criterion) {
+//     // setup
+//     let mut keys = keygenerator::KeyGenerator::new_empty();
+//     keys.read_from_file().expect("");
+//     let random_keys = keys.random;
 
-    // custom benchmarking function.
-    c.bench_function("bench_bloom_filter_create", |b| {
-        b.iter_custom(|iters| {
-            let start = Instant::now();
-            for _ in 0..iters {
-                let mut bloom_filter = BloomFilter::new(SAMPLE_SIZE, 0.01);
-                for i in 0..(SAMPLE_SIZE as usize) {
-                    black_box(bloom_filter.insert(random_keys.1[i]));
-                }
-            }
-            return start.elapsed();
-        });
-    });
-}
+//     // custom benchmarking function.
+//     c.bench_function("bench_bloom_filter_create", |b| {
+//         b.iter_custom(|iters| {
+//             let start = Instant::now();
+//             for _ in 0..iters {
+//                 let mut bloom_filter = BloomFilter::new(SAMPLE_SIZE, 0.01);
+//                 for i in 0..(SAMPLE_SIZE as usize) {
+//                     black_box(bloom_filter.insert(random_keys.1[i]));
+//                 }
+//             }
+//             return start.elapsed();
+//         });
+//     });
+// }
 
 criterion_group!(benches, bench_bloom_filter_uniform_member, bench_bloom_filter_disjoint_member,
-    bench_bloom_filter_mixed_member, bench_bloom_filter_random_member, bench_bloom_filter_create);
+    bench_bloom_filter_mixed_member, bench_bloom_filter_random_member);
 criterion_main!(benches);

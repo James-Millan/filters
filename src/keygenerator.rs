@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use rand::prelude::SliceRandom;
 use rand::Rng;
-pub static SAMPLE_SIZE: u64 = 100000;
+pub static SAMPLE_SIZE: u64 = 100000000;
+
 pub struct KeyGenerator {
     pub random: (Vec<u64>, Vec<u64>),
     pub disjoint: (Vec<u64>, Vec<u64>),
@@ -26,10 +27,11 @@ impl KeyGenerator {
         }
     }
     fn generate_random_keys(size: u64) -> (Vec<u64>, Vec<u64>) {
+
         let mut set_keys = HashSet::new();
         let mut rng = rand::thread_rng();
 
-        while set_keys.len() < size as usize {
+        while set_keys.len() < SAMPLE_SIZE as usize {
             let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
             if !set_keys.contains(&random_value) {
                 set_keys.insert(random_value);
@@ -38,7 +40,7 @@ impl KeyGenerator {
         let keys: Vec<u64> = set_keys.iter().copied().collect();
         
         let mut lookup_keys = HashSet::new();
-        while lookup_keys.len() < size as usize {
+        while lookup_keys.len() < SAMPLE_SIZE as usize {
             let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
             if !set_keys.contains(&random_value) && !lookup_keys.contains(&random_value) {
                 lookup_keys.insert(random_value);
@@ -53,7 +55,7 @@ impl KeyGenerator {
         let mut rng = rand::thread_rng();
 
         let mut set_keys = HashSet::new();
-        while set_keys.len() < size as usize {
+        while set_keys.len() < SAMPLE_SIZE as usize {
             let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
             if !set_keys.contains(&random_value) {
                 set_keys.insert(random_value);
@@ -77,7 +79,7 @@ impl KeyGenerator {
         return (list,queries)
     }
     fn generate_disjoint_keys(size:u64) -> (Vec<u64>, Vec<u64>) {
-        return ((0..size).collect(),(size..2*size).collect());
+        return ((0..SAMPLE_SIZE).collect(),(SAMPLE_SIZE..2*SAMPLE_SIZE).collect());
     }
 
     pub fn write_to_file(&self) -> Result<(), std::io::Error> {

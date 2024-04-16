@@ -31,7 +31,7 @@ impl ThreeWiseBinaryFuseFilter8 {
             num_segments: 0,
         };
         let n = keys.len();
-        filter.size = ((1.125 * n as f64).floor() + 32.0) as u64;
+        filter.size = ((1.125 * n as f64).ceil() + 32.0) as u64;
         filter.l = log_base(filter.size as f64, 2f64) as u32;
         let exp = (log_base(n as f64,3.33) + 2.25).floor() as u32;
         filter.segment_length = 2u32.pow(exp);
