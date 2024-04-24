@@ -19,24 +19,30 @@ impl BitVector {
     // indexed based on size told to outside world. Need to remember it is 8 times smaller.
     // OR the correct bit with 1. All other digits in the OR'd number should be 0
     pub(crate) fn insert(&mut self, index: u64) {
-        self.array[(index / 8) as usize] |= 1 << (index % 8);
+        let q = index >> 3;
+        let r = index & 7;
+        self.array[q as usize] |= 1 << r;
     }
 
     // AND the correct bit with 0. All other digits in the AND'd number should be 1 to not affect things.
     pub(crate) fn delete(&mut self, index: u64)  {
-        self.array[(index / 8) as usize] &= 0b11111111 ^ (1 << (index % 8))
+        let q = index >> 3;
+        let r = index & 7;
+        self.array[q as usize] &= 0b11111111 ^ (1 << r)
     }
 
     // return true if bit set. false if not.
     pub(crate) fn member(&self, index: u64) -> bool {
-        let mask = 1 << (index % 8);
-        return (self.array[(index / 8) as usize] & mask)!= 0
+        let q = index >> 3;
+        let r = index & 7;
+        let mask = 1 << r;
+        return (self.array[q as usize] & mask)!= 0
     }
 
     // create array of correct size.
     fn get_array(size : u64) -> Vec<u8>  {
-        let mut len= size.div_euclid(8);
-        let remainder = size % 8;
+        let mut len= size >> 3;
+        let remainder = size  & 7;
         if remainder > 0 {
             len += 1;
         }
