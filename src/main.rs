@@ -60,12 +60,27 @@ use crate::rabtab::RegisterAlignedBloomFilter;
 
 fn main() {
     let mut keys = vec![];
-    for i in 0..100 {
+    for i in 0..100000 {
         keys.push(i);
     }
     let size = 100000;
+    let b = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter8::new(keys);
 
-    let mut m = mortonfilter::MortonFilter::new(size, 0.01);
+    for i in (0..10000) {
+        println!("contains: {},{}", i, b.member(i));
+    }
+
+    // let mut m = mortonfilter::MortonFilter::new(size, 0.01);
+    // for i in 0..100000 {
+    //     m.insert(i);
+    // }
+    //
+    // for i in 0..100000 {
+    //     if !m.member(i) {
+    //         println!("contains: {}, {}", i, m.member(i));
+    //     }
+    // }
+
     let mut q = quotientfilter::QuotientFilter::new(size);
     let mut r = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size, 64, 0.01);
     // let mur n = registeralignedbloomfilter::RegisterAlignedBloomFilter(size,64,0.01);

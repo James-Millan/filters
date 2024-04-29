@@ -20,7 +20,7 @@ pub struct MortonFilter {
 
 impl MortonFilter {
     pub fn new(size : u64, fpr: f64) -> MortonFilter {
-        let length = (1.1f64 * size as f64) as u64;
+        let length = (2f64 * size as f64) as u64;
         let n = length * BUCKETS_PER_BLOCK as u64;
         return MortonFilter {
             block_store: Self::generate_block_store(length),
@@ -446,11 +446,11 @@ impl MortonFilter {
 
     fn hash2(&self, key: u64, fingerprint: u8) -> u32 {
         let h1 = self.hash1(key);
-        return utils::map((h1 as i32 + (-1i32.pow(h1) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
+        return utils::map((h1 as i32 + (-1i32.pow(h1 & 1) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
     }
 
     fn hash_prime(&self, beta: usize, fingerprint: u8) -> u32 {
-        return utils::map((beta as i32 + (-1i32.pow((beta) as u32) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
+        return utils::map((beta as i32 + (-1i32.pow((beta & 1) as u32) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
     }
 
     fn offset(&self, fingerprint: u8) -> u32 {
