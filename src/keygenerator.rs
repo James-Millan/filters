@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use rand::prelude::SliceRandom;
 use rand::Rng;
-pub static SAMPLE_SIZE: u64 = 100000000;
+pub static SAMPLE_SIZE: u64 = 1000000000;
+
 
 pub struct KeyGenerator {
     pub random: (Vec<u64>, Vec<u64>),
@@ -42,12 +43,14 @@ impl KeyGenerator {
         let mut lookup_keys = HashSet::new();
         while lookup_keys.len() < SAMPLE_SIZE as usize {
             let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
-            if !set_keys.contains(&random_value) && !lookup_keys.contains(&random_value) {
+            if !lookup_keys.contains(&random_value) {
                 lookup_keys.insert(random_value);
             }
         }
 
         let lookup_keys: Vec<u64>  = lookup_keys.iter().copied().collect();
+        // println!("{},{}", keys.len(), lookup_keys.len());
+        println!("done");
         return (keys,lookup_keys)
     }
 
@@ -128,6 +131,7 @@ impl KeyGenerator {
                 .split_whitespace()
                 .filter_map(|s| s.parse().ok())
                 .collect();
+            // println!("{},{}", first_vec.clone().len(), second_vec.clone().len());
             self.random = (first_vec,second_vec);
         }
         let file = File::open("disjoint_keys")?;

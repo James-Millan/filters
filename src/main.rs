@@ -59,15 +59,20 @@ use crate::rabtab::RegisterAlignedBloomFilter;
 
 
 fn main() {
-    let mut keys = vec![];
-    for i in 0..100 {
-        keys.push(i);
-    }
-    let size = 100000;
 
-    let mut m = mortonfilter::MortonFilter::new(size, 0.01);
-    let mut q = quotientfilter::QuotientFilter::new(size);
-    let mut r = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size, 64, 0.01);
+    let mut  keys = keygenerator::KeyGenerator::new_empty();
+    keys.read_from_file().expect("");
+    let random_keys = keys.random;
+    println!("{:?}", random_keys);
+    // let mut keys = vec![];
+    // for i in 0..100 {
+    //     keys.push(i);
+    // }
+    // let size = 100000;
+
+    // let mut m = mortonfilter::MortonFilter::new(size, 0.01);
+    // let mut q = quotientfilter::QuotientFilter::new(size);
+    // let mut r = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size, 64, 0.01);
     // let mur n = registeralignedbloomfilter::RegisterAlignedBloomFilter(size,64,0.01);
     // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
     // let mut nums = vec![];

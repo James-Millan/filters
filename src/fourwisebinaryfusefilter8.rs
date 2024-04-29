@@ -6,6 +6,7 @@ use std::collections::{HashSet, VecDeque};
 mod utils;
 use utils::hash;
 use utils::log_base;
+use std::cmp;
 
 pub struct FourWiseBinaryFuseFilter8 {
     fingerprints: Vec<u8>,
