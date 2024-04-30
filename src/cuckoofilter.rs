@@ -56,6 +56,9 @@ impl CuckooFilter {
     }
 
     pub fn insert(&mut self, key: u64) -> bool {
+        if self.full {
+            return false;
+        }
         let mut f = self.fingerprint(key) as u64;
         let i_1 = utils::hash(key,self.l, self.hash_coefficients.0, self.hash_coefficients.1, self.hash_coefficients.2) % self.bucket_count as u32;
         let i_2 = Self::hash2(self,i_1, f as u32) % self.bucket_count as u32;

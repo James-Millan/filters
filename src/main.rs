@@ -52,37 +52,131 @@ mod fourwisebinaryfusefilter16;
 extern crate rand;
 
 
+use std::time::Instant;
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use rand::Rng;
 use rand::seq::index::sample;
+use crate::fpr::{binary_fuse_filter_8_fpr, binary_fuse_filter_fpr, blocked_bloom_filter_fpr, bloom_filter_fpr, counting_bloom_filter_fpr, cuckoo_filter_fpr, morton_filter_fpr, quotient_filter_fpr, register_aligned_bloom_filter_fpr, xor_filter_8_fpr, xor_filter_fpr};
 use crate::rabtab::RegisterAlignedBloomFilter;
 
 
 fn main() {
     let mut keys = vec![];
-    for i in 0..100000 {
+    let size = 1000000;
+    let num_iterations = 10;
+    for i in 0..size {
         keys.push(i);
     }
-    let size = 100000;
-    let b = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter8::new(keys);
 
-    for i in (0..10000) {
-        println!("contains: {},{}", i, b.member(i));
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut bf = bloomfilter::BloomFilter::new(size,0.01);
+        for i in 0..size {
+            bf.insert(i);
+        }
     }
 
-    // let mut m = mortonfilter::MortonFilter::new(size, 0.01);
-    // for i in 0..100000 {
-    //     m.insert(i);
-    // }
-    //
-    // for i in 0..100000 {
-    //     if !m.member(i) {
-    //         println!("contains: {}, {}", i, m.member(i));
-    //     }
-    // }
+    println!("Bloom Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
 
-    let mut q = quotientfilter::QuotientFilter::new(size);
-    let mut r = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size, 64, 0.01);
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut cbf = countingbloomfilter::CountingBloomFilter::new(size,0.01);
+        for i in 0..size {
+            cbf.insert(i);
+        }
+    }
+    println!("Counting Bloom Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut bbf = blockedbloomfilter::BlockedBloomFilter::new(size,512,0.01);
+        for i in 0..size {
+            bbf.insert(i);
+        }
+    }
+    println!("Blocked Bloom Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut rabf = registeralignedbloomfilter::RegisterAlignedBloomFilter::new(size,64,0.01);
+        for i in 0..size {
+            rabf.insert(i);
+        }
+    }
+    println!("Register Aligned Bloom Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut cf = cuckoofilter::CuckooFilter::new((1.1f64 * size as f64) as usize,1000,2);
+        for i in 0..size {
+            cf.insert(i);
+        }
+    }
+    println!("Cuckoo Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut xf = xorfilter::XorFilter::new((0..size).collect());
+    }
+    println!("Xor Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut bff = threewisebinaryfusefilter8::ThreeWiseBinaryFuseFilter8::new((0..size).collect());
+    }
+    println!("Binary Fuse-3-8 Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut bff = fourwisebinaryfusefilter8::FourWiseBinaryFuseFilter8::new(&(0..size).collect());
+    }
+    println!("Binary Fuse-4-8 Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut qf = quotientfilter::QuotientFilter::new(size);
+        for i in 0..size {
+            qf.insert(i);
+        }
+    }
+    println!("Quotient Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+    let start = Instant::now();
+    for _ in 0..num_iterations {
+        let mut mf = mortonfilter::MortonFilter::new(size,0.01);
+        for i in 0..size {
+            mf.insert(i);
+        }
+    }
+    println!("Morton Filter construction, {},{:?}", size, start.elapsed()/num_iterations);
+
+
+    // bloom_filter_fpr(size, 0.01, &keys,&lookup_keys);
+    // counting_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
+    // cuckoo_filter_fpr(size, 0.01, &keys,&lookup_keys);
+    // binary_fuse_filter_8_fpr(&keys,&lookup_keys);
+    // xor_filter_fpr(&keys,&lookup_keys);
+    // xor_filter_8_fpr(&keys,&lookup_keys);
+    // binary_fuse_filter_fpr(&keys,&lookup_keys);
+    // binary_fuse_filter_8_fpr(&keys, &lookup_keys);
+    // blocked_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
+    // register_aligned_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
+    // morton_filter_fpr(size, 0.01, &keys,&lookup_keys);
+    // quotient_filter_fpr(size, 0.01, &keys,&lookup_keys);
+
+
+
+
+
+
+
+
+
+
+
+
+
     // let mur n = registeralignedbloomfilter::RegisterAlignedBloomFilter(size,64,0.01);
     // let mut c = cuckoofilter::CuckooFilter::new(10000,1000,2);
     // let mut nums = vec![];
