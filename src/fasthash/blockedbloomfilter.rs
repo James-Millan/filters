@@ -78,9 +78,9 @@ impl BlockedBloomFilter {
     }
 
     // Check if an element is present in the correct block.
-    pub fn member(&mut self, element: u64) -> bool {
+    pub fn member(&self, element: u64) -> bool {
         let block_id = self.get_block_id(element);
-        let block = self.blocks.get_mut(block_id).unwrap();
+        let block = self.blocks.get(block_id).unwrap();
         let hash = (utils::hash(element, self.binary_info.0, self.hash_function.0,self. hash_function.1, self.hash_function.2) % self.size as u32);
         let h1: u16 = ((hash >> 16) & 0xFFFF) as u16;
         let h2: u16 = (hash & 0xFFFF) as u16;

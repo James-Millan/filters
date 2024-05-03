@@ -80,9 +80,9 @@ impl RegisterAlignedBloomFilter {
     }
 
     // Check if an element is present in the correct block.
-    pub fn member(&mut self, element: u64) -> bool {
+    pub fn member(&self, element: u64) -> bool {
         let block_id = self.get_block_id(element);
-        let block = self.blocks.get_mut(block_id).unwrap();
+        let block = self.blocks.get(block_id).unwrap();
         // compute mask. So only one operation performed on register
         let mut mask = 0;
         let hash = (utils::hash(element, self.binary_info.0, self.hash_function.0,self. hash_function.1, self.hash_function.2) % self.size as u32);

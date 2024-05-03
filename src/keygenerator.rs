@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use rand::prelude::SliceRandom;
 use rand::Rng;
-pub static SAMPLE_SIZE: u64 = 100000000;
+pub static SAMPLE_SIZE: u64 = 1000000;
 
 pub struct KeyGenerator {
     pub random: (Vec<u64>, Vec<u64>),
