@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use rand::prelude::SliceRandom;
 use rand::Rng;
-pub static SAMPLE_SIZE: u64 = 1000000;
+pub static SAMPLE_SIZE: u64 = 1000000000;
+
 
 pub struct KeyGenerator {
     pub random: (Vec<u64>, Vec<u64>),
@@ -42,7 +43,7 @@ impl KeyGenerator {
         let mut lookup_keys = HashSet::new();
         while lookup_keys.len() < SAMPLE_SIZE as usize {
             let random_value: u64 = rng.gen_range(0..(size as f64*2.5f64) as u64);
-            if !set_keys.contains(&random_value) && !lookup_keys.contains(&random_value) {
+            if !lookup_keys.contains(&random_value) {
                 lookup_keys.insert(random_value);
             }
         }
