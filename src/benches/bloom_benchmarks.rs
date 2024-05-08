@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::time::Instant;
 use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use crate::bloomfilter::BloomFilter;
 
 #[path = "../bloomfilter.rs"]
 mod bloomfilter;
@@ -8,11 +9,13 @@ mod bloomfilter;
 #[path = "../keygenerator.rs"]
 mod keygenerator;
 
+
 static  SAMPLE_SIZE: u64 = keygenerator::SAMPLE_SIZE;
 
 
 fn bench_bloom_filter_uniform_member(c: &mut Criterion) {
     // setup
+    let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
     let mut keys = keygenerator::KeyGenerator::new_empty();
     keys.read_from_file().expect("");
     let disjoint_keys = keys.disjoint;
@@ -34,7 +37,7 @@ fn bench_bloom_filter_uniform_member(c: &mut Criterion) {
                     black_box(bloom_filter.borrow().member(disjoint_keys.0[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;
@@ -50,12 +53,14 @@ fn bench_bloom_filter_uniform_member(c: &mut Criterion) {
                 }
                 return start.elapsed();
             }
-            
+
         });
     });
 }
+
 fn bench_bloom_filter_mixed_member(c: &mut Criterion) {
     // setup
+    let bloom_filter = RefCell::new(BloomFilter::new(SAMPLE_SIZE, 0.01));
     let mut keys = keygenerator::KeyGenerator::new_empty();
     keys.read_from_file().expect("");
     let mixed_keys = keys.mixed;
@@ -64,6 +69,7 @@ fn bench_bloom_filter_mixed_member(c: &mut Criterion) {
     for i in &mixed_keys.0 {
         bloom_filter.borrow_mut().insert(*i);
     }
+
     // custom benchmarking function.
     c.bench_function("bench_bloom_filter_mixed_member", |b| {
         b.iter_custom(|iters| {
@@ -76,7 +82,7 @@ fn bench_bloom_filter_mixed_member(c: &mut Criterion) {
                     black_box(bloom_filter.borrow().member(mixed_keys.0[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;
@@ -117,7 +123,7 @@ fn bench_bloom_filter_disjoint_member(c: &mut Criterion) {
                     black_box(bloom_filter.borrow().member(disjoint_keys.1[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;

@@ -30,7 +30,7 @@ fn bench_binary3_fuse8_filter_uniform_member(c: &mut Criterion) {
                     black_box(binary_fuse_filter.borrow().member(disjoint_keys.0[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;
@@ -46,7 +46,7 @@ fn bench_binary3_fuse8_filter_uniform_member(c: &mut Criterion) {
                 }
                 return start.elapsed();
             }
-            
+
         });
     });
 }
@@ -69,7 +69,7 @@ fn bench_binary3_fuse8_filter_mixed_member(c: &mut Criterion) {
                     black_box(binary_fuse_filter.borrow().member(mixed_keys.0[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;
@@ -107,7 +107,7 @@ fn bench_binary3_fuse8_filter_disjoint_member(c: &mut Criterion) {
                     black_box(binary_fuse_filter.borrow().member(disjoint_keys.1[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;
@@ -146,7 +146,7 @@ fn bench_binary3_fuse8_filter_random_member(c: &mut Criterion) {
                     black_box(binary_fuse_filter.borrow().member(random_keys.0[i]));
                     // xor_filter.borrow().member(random_keys.1[i]);
                 }
-                return start.elapsed();            
+                return start.elapsed();
             }
             else {
                 num_runs -= 1;

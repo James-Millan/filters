@@ -28,7 +28,7 @@ impl ThreeWiseBinaryFuseFilter8 {
             num_segments: 0,
         };
         let n = keys.len();
-        //filter.size = (1.2 * n as f64) as u64 + 32;
+        // filter.size = (1.125 * n as f64) as u64 + 32;
         filter.size =  ((0.875 + 0.25 * cmp::max(1, (log_base(100000f64, 2f64) / log_base(n as f64, 2f64)) as i32)
             as f64) as usize * n) as u64;
             //(1.125 * n as f64).floor() + 32.0) as u64;

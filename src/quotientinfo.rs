@@ -6,7 +6,7 @@ pub struct QuotientInfo {
 }
 
 impl QuotientInfo {
-    pub(crate) fn new() -> QuotientInfo {
+    pub fn new() -> QuotientInfo {
         return QuotientInfo {
             is_occupied: false,
             is_shifted: false,

@@ -5,7 +5,9 @@ use crate::bloomfilter::BloomFilter;
 use crate::countingbloomfilter::CountingBloomFilter;
 use crate::cuckoofilter::CuckooFilter;
 use crate::registeralignedbloomfilter::RegisterAlignedBloomFilter;
-use crate::{threewisebinaryfusefilter32, threewisebinaryfusefilter8, xorfilter, XorFilter8};
+use crate::{fourwisebinaryfusefilter8, threewisebinaryfusefilter32, threewisebinaryfusefilter8, xorfilter, XorFilter8};
+use crate::mortonfilter::MortonFilter;
+use crate::quotientfilter::QuotientFilter;
 use crate::registeralignedlarger::RegisterAlignedBloomFilterLarger;
 
 pub(crate) fn bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
@@ -13,7 +15,7 @@ pub(crate) fn bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys:
     for key in keys {
         bloom_filter.insert(*key);
     }
-        let mut count: f64 = 0f64;
+    let mut count: f64 = 0f64;
     let mut fp: f64 = 0f64;
     for i in lookup_keys {
         count += 1.0f64;
@@ -49,15 +51,19 @@ pub(crate) fn cuckoo_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys
         cuckoo_filter.insert(*key);
     }
     let mut count: f64 = 0f64;
-    let mut fp: f64 = 0f64;
-    for i in lookup_keys {
-        count += 1.0f64;
-        if (cuckoo_filter.member(*i)) {
-            fp += 1.0f64;
+
+    let mut sum = 0f64;
+    for j in 0..100 {
+        let mut fp: f64 = 0f64;
+        for i in lookup_keys {
+            count += 1.0f64;
+            if (cuckoo_filter.member(*i)) {
+                fp += 1.0f64;
+            }
         }
+        sum += fp/count;
     }
-    let fpr = fp/count;
-    println!("Cuckoo filter fpr: '{}'", fpr);
+    println!("Cuckoo filter fpr: '{}'", sum/100.0);
 }
 
 pub(crate) fn xor_filter_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
@@ -92,7 +98,6 @@ pub(crate) fn xor_filter_8_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
         }
         sum += fp/count;
     }
-
     println!("Xor filter 8 bit fpr: '{}'", sum);
 }
 
@@ -125,6 +130,20 @@ pub(crate) fn binary_fuse_filter_8_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) 
     println!("Binary Fuse filter 8 bit fpr: '{}'", fpr);
 }
 
+pub(crate) fn binary_fuse4_filter_8_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
+    let mut binary_fuse_filter = fourwisebinaryfusefilter8::FourWiseBinaryFuseFilter8::new(keys);
+    let mut count: f64 = 0f64;
+    let mut fp: f64 = 0f64;
+    for i in lookup_keys {
+        count += 1.0f64;
+        if (binary_fuse_filter.member(*i)) {
+            fp += 1.0f64;
+        }
+    }
+    let fpr = fp/count;
+    println!("Binary Fuse filter 4 wise 8 bit fpr: '{}'", fpr);
+}
+
 
 pub(crate) fn blocked_bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookups : &Vec<u64>) {
     let mut blocked_bloom_filter = BlockedBloomFilter::new(size, 512, fpr);
@@ -146,6 +165,49 @@ pub(crate) fn blocked_bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, look
     }
     println!("Blocked Bloom filter fpr: '{}'", sum/100.0);
 }
+
+pub(crate) fn morton_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookups : &Vec<u64>) {
+    let mut morton_filter = MortonFilter::new(size, fpr);
+    for key in keys {
+        morton_filter.insert(*key);
+    }
+    let mut count: f64 = 0f64;
+
+    let mut sum = 0f64;
+
+    let mut fp: f64 = 0f64;
+    for i in lookups {
+        count += 1.0f64;
+        if (morton_filter.member(*i)) {
+            fp += 1.0f64;
+        }
+    }
+    sum += fp/count;
+    println!("Morton filter fpr: '{}'", sum);
+}
+
+pub(crate) fn quotient_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookups : &Vec<u64>) {
+    let mut quotient_filter = QuotientFilter::new(size);
+    for key in keys {
+        quotient_filter.insert(*key);
+    }
+    let mut count: f64 = 0f64;
+
+    let mut sum = 0f64;
+
+    let mut fp: f64 = 0f64;
+    for i in lookups {
+        count += 1.0f64;
+        if (quotient_filter.member(*i)) {
+            fp += 1.0f64;
+        }
+    }
+    sum += fp/count;
+    println!("Quotient filter fpr: '{}'", sum);
+}
+
+
+
 
 pub(crate) fn register_aligned_bloom_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys: &Vec<u64>) {
     let mut register_aligned_bloom_filter = RegisterAlignedBloomFilter::new(size, 64, fpr);
@@ -194,7 +256,6 @@ pub(crate) fn run_fpr_tests(size: u64) {
         lookup_keys.push(i);
     }
 
-    blocked_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     bloom_filter_fpr(size, 0.01, &keys,&lookup_keys);
     counting_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     cuckoo_filter_fpr(size, 0.01, &keys,&lookup_keys);
@@ -202,9 +263,13 @@ pub(crate) fn run_fpr_tests(size: u64) {
     xor_filter_fpr(&keys,&lookup_keys);
     xor_filter_8_fpr(&keys,&lookup_keys);
     binary_fuse_filter_fpr(&keys,&lookup_keys);
+    binary_fuse_filter_8_fpr(&keys, &lookup_keys);
     blocked_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
     register_aligned_bloom_filter_fpr(size,0.01,&keys,&lookup_keys);
-    register_aligned_bloom_filter_larger_fpr(size,0.01,&keys,&lookup_keys);
+    morton_filter_fpr(size, 0.01, &keys,&lookup_keys);
+    quotient_filter_fpr(size, 0.01, &keys,&lookup_keys);
+
+
 }
 
 pub(crate) fn run_randomised_fpr_tests(size: u64) {

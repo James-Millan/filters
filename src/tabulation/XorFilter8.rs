@@ -19,7 +19,7 @@ impl XorFilter {
             size: 0,
         };
 
-        filter.size = ((1.23 * keys.len() as f64).floor() + 32.0) as u64;
+        filter.size = ((1.23 * keys.len() as f64).ceil() + 64.0) as u64;
         filter.construct(keys);
         return filter;
     }
@@ -100,7 +100,7 @@ impl XorFilter {
         }
         else {
             //println!("'{:?}'", sigma);
-            //println!("'{}'", sigma.len());
+            println!("'{}'", sigma.len());
             return false;
         }
     }
@@ -123,7 +123,7 @@ impl XorFilter {
     fn hash0(&self, key: u64) -> u32 {
         let bound = self.size / 3;
         let res = (self.hashes[0].tabulation_hashing(key) % bound) as u32;
-        //println!("'{}','{}'",0, res);
+        // println!("'{}','{}'",0, res);
         return res;
 
     }
@@ -131,14 +131,14 @@ impl XorFilter {
         let bound = self.size / 3;
         let mut res = (self.hashes[1].tabulation_hashing(key) % bound) as u32;
         res = (bound + res as u64) as u32;
-        //println!("'{}','{}'",1, res);
+        // println!("'{}','{}'",1, res);
         return res
     }
     fn hash2(&self, key: u64) -> u32 {
         let bound = self.size / 3;
         let mut res = (self.hashes[2].tabulation_hashing(key) % bound) as u32;
         res = ((2 * bound) + res as u64) as u32;
-        //println!("'{}','{}'",2, res);
+        // println!("'{}','{}'",2, res);
         return res;
     }
 }

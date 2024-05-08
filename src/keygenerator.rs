@@ -49,8 +49,6 @@ impl KeyGenerator {
         }
 
         let lookup_keys: Vec<u64>  = lookup_keys.iter().copied().collect();
-        // println!("{},{}", keys.len(), lookup_keys.len());
-        println!("done");
         return (keys,lookup_keys)
     }
 
@@ -131,7 +129,6 @@ impl KeyGenerator {
                 .split_whitespace()
                 .filter_map(|s| s.parse().ok())
                 .collect();
-            // println!("{},{}", first_vec.clone().len(), second_vec.clone().len());
             self.random = (first_vec,second_vec);
         }
         let file = File::open("disjoint_keys")?;
