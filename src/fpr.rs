@@ -51,15 +51,19 @@ pub(crate) fn cuckoo_filter_fpr(size: u64, fpr:f64, keys: &Vec<u64>, lookup_keys
         cuckoo_filter.insert(*key);
     }
     let mut count: f64 = 0f64;
-    let mut fp: f64 = 0f64;
-    for i in lookup_keys {
-        count += 1.0f64;
-        if (cuckoo_filter.member(*i)) {
-            fp += 1.0f64;
+
+    let mut sum = 0f64;
+    for j in 0..100 {
+        let mut fp: f64 = 0f64;
+        for i in lookup_keys {
+            count += 1.0f64;
+            if (cuckoo_filter.member(*i)) {
+                fp += 1.0f64;
+            }
         }
+        sum += fp/count;
     }
-    let fpr = fp/count;
-    println!("Cuckoo filter fpr: '{}'", fpr);
+    println!("Cuckoo filter fpr: '{}'", sum/100.0);
 }
 
 pub(crate) fn xor_filter_fpr(keys: &Vec<u64>, lookup_keys: &Vec<u64>) {

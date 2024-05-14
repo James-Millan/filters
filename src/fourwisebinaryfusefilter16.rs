@@ -30,7 +30,7 @@ impl FourWiseBinaryFuseFilter16 {
             num_segments: 0
         };
         let n = keys.len();
-        filter.size = ((1.075 * n as f64).floor() + 32.0) as u64;
+        filter.size = ((1.075 * n as f64).ceil() + 32.0) as u64;
         filter.l = log_base(filter.size as f64, 2f64) as u32;
         let exp = (log_base(n as f64,2.91) -0.5).floor() as u32;
         filter.segment_length = 2u32.pow(exp);
@@ -77,15 +77,20 @@ impl FourWiseBinaryFuseFilter16 {
     fn mapping(&mut self, keys: &Vec<u64>) -> bool {
         let c: u64 = self.size;
         let mut h: Vec<(u64,usize)> = vec![(0,0); c as usize];
+        let mut sorted : Vec<Vec<u64>> = vec![vec![]; self.num_segments as usize];
         for i in 0..keys.len() {
-            let x = keys[i];
-            let (h0,h1,h2,h3) = self.segmented_hash(x);
-            h[h0 as usize] = ((x ^ h[h0 as usize].0), h[h0 as usize].1 + 1);
-            h[h1 as usize] = ((x ^ h[h1 as usize].0), h[h1 as usize].1 + 1);
-            h[h2 as usize] = ((x ^ h[h2 as usize].0), h[h2 as usize].1 + 1);
-            h[h3 as usize] = ((x ^ h[h3 as usize].0), h[h3 as usize].1 + 1);
+            sorted[self.get_segment(keys[i]) as usize].push(keys[i]);
+        }
 
-
+        for i in 0..sorted.len() {
+            for j in 0..sorted[i].len() {
+                let x = sorted[i][j];
+                let (h0,h1,h2, h3) = self.segmented_hash(x);
+                h[h0 as usize] = ((x ^ h[h0 as usize].0), h[h0 as usize].1 + 1);
+                h[h1 as usize] = ((x ^ h[h1 as usize].0), h[h1 as usize].1 + 1);
+                h[h2 as usize] = ((x ^ h[h2 as usize].0), h[h2 as usize].1 + 1);
+                h[h3 as usize] = ((x ^ h[h3 as usize].0), h[h3 as usize].1 + 1);
+            }
         }
         let mut q = VecDeque::new();
         let mut sigma = Vec::new();
@@ -167,5 +172,9 @@ impl FourWiseBinaryFuseFilter16 {
         let h3 = (hash(key,self.l, self.hashes[3].0, self.hashes[3].1, self.hashes[3].2) % s_length) +
             ((segment_id+3) * s_length);
         return (h0,h1,h2,h3);
+    }
+
+    fn get_segment(&self, key: u64) -> (u32) {
+        return hash(key,self.l, self.hashes[4].0, self.hashes[4].1, self.hashes[4].2) % (self.num_segments-3) as u32;
     }
 }

@@ -18,81 +18,82 @@ log = "0.4.20"
 ahash = "0.8.9"
 num = "0.4.1"
 
-#[[bench]]
-#name = "bloom_filter_benchmark"
-#path = "src/benches/bloom_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "counting_bloom_filter_benchmark"
-#path = "src/benches/counting_bloom_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "blocked_bloom_filter_benchmark"
-#path = "src/benches/blocked_bloom_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "register_aligned_bloom_filter_benchmark"
-#path = "src/benches/register_aligned_bloom_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "cuckoo_filter_benchmark"
-#path = "src/benches/cuckoo_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "xor8_filter_benchmark"
-#path = "src/benches/xor8_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "xor32_filter_benchmark"
-#path = "src/benches/xor32_benchmarks.rs"
-#harness = false
-#
 [[bench]]
 name = "binary3_fuse8_filter_benchmark"
 path = "src/benches/binary3_fuse8_benchmarks.rs"
 harness = false
-#
-#[[bench]]
-#name = "binary3_fuse16_filter_benchmark"
-#path = "src/benches/binary3_fuse16_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "binary3_fuse32_filter_benchmark"
-#path = "src/benches/binary3_fuse32_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "binary4_fuse32_filter_benchmark"
-#path = "src/benches/binary4_fuse32_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "binary4_fuse16_filter_benchmark"
-#path = "src/benches/binary4_fuse16_benchmarks.rs"
-#harness = false
-#
-#[[bench]]
-#name = "binary4_fuse8_filter_benchmark"
-#path = "src/benches/binary4_fuse8_benchmarks.rs"
-#harness = false
-#
+
+[[bench]]
+name = "binary3_fuse16_filter_benchmark"
+path = "src/benches/binary3_fuse16_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "binary3_fuse32_filter_benchmark"
+path = "src/benches/binary3_fuse32_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "binary4_fuse32_filter_benchmark"
+path = "src/benches/binary4_fuse32_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "binary4_fuse16_filter_benchmark"
+path = "src/benches/binary4_fuse16_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "binary4_fuse8_filter_benchmark"
+path = "src/benches/binary4_fuse8_benchmarks.rs"
+harness = false
+
+
+[[bench]]
+name = "bloom_filter_benchmark"
+path = "src/benches/bloom_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "counting_bloom_filter_benchmark"
+path = "src/benches/counting_bloom_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "blocked_bloom_filter_benchmark"
+path = "src/benches/blocked_bloom_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "register_aligned_bloom_filter_benchmark"
+path = "src/benches/register_aligned_bloom_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "cuckoo_filter_benchmark"
+path = "src/benches/cuckoo_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "xor8_filter_benchmark"
+path = "src/benches/xor8_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "xor32_filter_benchmark"
+path = "src/benches/xor32_benchmarks.rs"
+harness = false
+
 #[[bench]]
 #name = "quotient_filter_benchmark"
 #path = "src/benches/quotient_benchmarks.rs"
 #harness = false
-#
+
 #[[bench]]
 #name = "morton_filter_benchmark"
 #path = "src/benches/morton_benchmarks.rs"
 #harness = false
-#
+
 #[[bench]]
 #name = "static_filters_create_benchmark"
 #path = "src/benches/static_filter_creation_benchmarks.rs"
