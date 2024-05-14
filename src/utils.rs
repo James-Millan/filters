@@ -8,17 +8,18 @@ struct HashInfo {
     size: u64
 }
 
-
+// (x ∗ n) >> k,
 pub(crate) fn map(x:u64, n:u64) -> u64 {
-    if x >=0 && x < n {
-        return x
+    return x % n;
+}
+
+pub(crate) fn map_neg(x:i32, n:u64) -> u64 {
+    if x < 0 {
+        // println!("{},{}",x,((x + n as i32) as u64));
+        return (x + n as i32) as u64;
     }
-    else if x < 0 {
-        return x + n;
-    }
-    else {
-        return x % n;
-    }
+    // println!("{}",x);
+    return (x as i64 % n as i64) as u64;
 }
 
 pub(crate) fn max(x:f64, y: f64) -> f64 {

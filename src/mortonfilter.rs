@@ -8,14 +8,14 @@ mod utils;
 use utils::{hash};
 
 const BUCKETS_PER_BLOCK: u32 = 46;
-const OFF_RANGE: u32 = 64;
+const OFF_RANGE: u32 = 256;
 const FCA_MAX_VAL: u8 = 3;
 
 pub struct MortonFilter {
     pub(crate) block_store: Vec<MortonBlock>,
     hashes: Vec<(u64,u64,u64)>,
     cache_size: usize,
-    size: u64,
+    pub(crate) size: u64,
     l: u32,
 }
 
@@ -85,64 +85,57 @@ impl MortonFilter {
             //check FCA isn't full
             let overflow_check = block2.fca[lbi2 as usize];
             if off2 + overflow_check >= BUCKETS_PER_BLOCK as u8 || overflow_check >= FCA_MAX_VAL {
-                // perform eviction
-                println!("eviction needed, {}", x);
                 return false;
-                // initialise mutable variables to be used on each iteration.
-                let mut num_kicks = 0;
-                let mut finished = false;
-                let mut offset = off;
+                // perform eviction from block 1
+                let mut fingerprint = f;
+                let mut global_index = glbi1;
                 let mut block: &mut MortonBlock = &mut self.block_store[(glbi1/BUCKETS_PER_BLOCK) as usize];
-                let mut f = f;
-                let mut local_index = lbi1;
-                let mut remapped_index = glbi1;
+                let mut local_index = global_index % BUCKETS_PER_BLOCK;
 
-
-                while !finished && num_kicks < 1000 {
+                // calculate offset.
+                let mut off = 0;
+                for i in 0..local_index {
+                    off += block.fca[i as usize];
+                }
+                let mut num_kicks = 0;
+                while num_kicks < 1000 {
                     num_kicks += 1;
-                    // select a key to evict and update fsa with new key.
-                    let mut fsa: &mut Vec<u8> = &mut block.fsa;
-                    let evicted_key = fsa[offset as usize];
-                    //println!("eviction needed, {}, {}", x, evicted_key);
+                    let overflow_check = block.fca[local_index as usize];
+                    let mut rng = rand::thread_rng();
+                    let random_index = rng.gen_range(off..=off+overflow_check);
+                    let kicked_key = block.fsa[random_index as usize];
+                    block.fsa[random_index as usize] = fingerprint;
 
-                    fsa[offset as usize] = f;
-                    f = evicted_key;
-
-                    // update ota to mark eviction
-                    let index = utils::map(local_index as u64, 16);
-                    let mut ota = &mut block.ota;
-                    ota[index as usize] = 1;
-
-                    //remap evicted key using hash_prime
-                    remapped_index = self.hash_prime((remapped_index + local_index) as usize, evicted_key);
-
-                    // insert key in correct position,
-                    block = &mut self.block_store[(remapped_index/BUCKETS_PER_BLOCK) as usize];
-                    local_index = remapped_index % BUCKETS_PER_BLOCK;
-
-                    // calculate offset
-                    offset = 0;
-                    let mut i = 0;
-                    for i in 0..local_index {
-                        offset += block.fca[i as usize];
+                    // map evicted key to alternate bucket
+                    let alternate = self.hash_prime(global_index as usize, kicked_key);
+                    let mut alternate_block: &mut MortonBlock = &mut self.block_store[(alternate/BUCKETS_PER_BLOCK) as usize];
+                    let mut alternate_local = alternate % BUCKETS_PER_BLOCK;
+                    let mut offa = 0;
+                    for i in 0..alternate_local {
+                        offa += alternate_block.fca[i as usize];
                     }
-                    //check FCA isn't full
-                    let check = block.fca[local_index as usize];
-                    if offset + check >= BUCKETS_PER_BLOCK as u8 || check >= FCA_MAX_VAL {
+
+                    let overflow_check = alternate_block.fca[local_index as usize];
+                    if offa + overflow_check >= BUCKETS_PER_BLOCK as u8 || overflow_check >= FCA_MAX_VAL {
                         println!("need to evict again");
+                        // another round set variables appropriately
+                        fingerprint = kicked_key;
+                        global_index = alternate;
+                        block = alternate_block;
+                        local_index = alternate_local;
+                        off = offa;
                     }
                     else {
-                        println!("evicted successfully");
-                        // insert into fsa
-                        let mut fsa= &mut block.fsa;
-                        fsa.insert((offset + check) as usize, evicted_key);
-
-                        // update fca
-                        let mut fca = &mut block.fca;
-                        fca[local_index as usize] += 1;
-                        finished = true;
+                        // insert key and move on
+                        println!("done evicting");
+                        alternate_block.fsa[(offa + overflow_check) as usize] = kicked_key;
+                        alternate_block.fca[alternate_local as usize] += 1;
+                        return true;
                     }
+
                 }
+
+                return false;
             }
             else {
                 // insert into fsa
@@ -161,6 +154,91 @@ impl MortonFilter {
         }
         return false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+
+                // println!("eviction needed, {}", x);
+                // return false;
+                // initialise mutable variables to be used on each iteration. evict from bucket1.
+                let mut num_kicks = 0;
+                let mut finished = false;
+                let mut offset = off;
+                let mut block: &mut MortonBlock = &mut self.block_store[(glbi1/BUCKETS_PER_BLOCK) as usize];
+                let mut f = f;
+                let mut local_index = lbi1;
+                let mut remapped_index = glbi1;
+                // assert that we are retrieving the correct h1 for the evicted key.
+
+                while !finished && num_kicks < 1000 {
+                    num_kicks += 1;
+                    // select a key to evict and update fsa with new key.
+                    let mut fsa: &mut Vec<u8> = &mut block.fsa;
+                    let evicted_key = fsa[offset as usize];
+                    // println!("{}", evicted_key);
+                    //println!("eviction needed, {}, {}", x, evicted_key);
+
+                    fsa[offset as usize] = f;
+                    f = evicted_key;
+
+                    // update ota to mark eviction
+                    let index = utils::map(local_index as u64, 16);
+                    let mut ota = &mut block.ota;
+                    ota[index as usize] = 1;
+
+                    //remap evicted key using hash_prime
+                    // let r = self.hash_prime(remapped_index as usize, evicted_key);
+                    // let rr = self.hash_prime(r as usize, evicted_key);
+                    // let rrr = self.hash_prime(rr as usize, evicted_key);
+                    //
+                    // println!("{},{},{},{}",remapped_index,r,rr,rrr);
+                    let r = remapped_index;
+                    remapped_index = self.hash_prime(remapped_index as usize, evicted_key);
+                    // println!("{} {}", r, remapped_index);
+                    // insert key in correct position,
+                    block = &mut self.block_store[(remapped_index/BUCKETS_PER_BLOCK) as usize];
+                    local_index = remapped_index % BUCKETS_PER_BLOCK;
+
+                    // calculate offset
+                    offset = 0;
+                    for i in 0..local_index {
+                        offset += block.fca[i as usize];
+                    }
+                    //check FCA isn't full
+                    let check = block.fca[local_index as usize];
+                    if offset + check >= BUCKETS_PER_BLOCK as u8 || check >= FCA_MAX_VAL {
+                        println!("need to evict again");
+                    }
+                    else {
+                        // println!("evicted successfully");
+                        // insert into fsa
+                        let mut fsa= &mut block.fsa;
+                        fsa.insert((offset + check) as usize, f);
+
+                        // update fca
+                        let mut fca = &mut block.fca;
+                        fca[local_index as usize] += 1;
+                        finished = true;
+                        break;
+                    }
+                }
+     */
+
+
+
+
+
+
 
     pub fn member(&self, x: u64) -> bool {
         // obtain indices
@@ -312,19 +390,22 @@ impl MortonFilter {
         return hash(key,self.l, self.hashes[1].0, self.hashes[1].1, self.hashes[1].2);
     }
 
-    fn hash1(&self, key: u64) -> u32 {
+    pub(crate) fn hash1(&self, key: u64) -> u32 {
         return utils::map(self.base_hash(key) as u64, self.size) as u32;
     }
 
-    fn hash2(&self, h1: u32, fingerprint: u8) -> u32 {
-        return utils::map((h1 as i32 + (-1i32.pow(h1 & 1) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
+    pub(crate) fn hash2(&self, h1: u32, fingerprint: u8) -> u32 {
+        let y = -1_i32;
+        // return self.hash_prime(h1 as usize,fingerprint);
+        return utils::map_neg((h1 as i32 + (y.pow(h1 & 1) * self.offset(fingerprint) as i32)), self.size) as u32;
     }
 
-    fn hash_prime(&self, beta: usize, fingerprint: u8) -> u32 {
-        return utils::map((beta as i32 + (-1i32.pow((beta & 1) as u32) * self.offset(fingerprint) as i32)) as u64, self.size) as u32;
+    pub(crate) fn hash_prime(&self, beta: usize, fingerprint: u8) -> u32 {
+        let y = -1_i32;
+        return utils::map_neg((beta as i32 + (y.pow((beta & 1) as u32) * self.offset(fingerprint) as i32)), self.size) as u32;
     }
 
-    fn offset(&self, fingerprint: u8) -> u32 {
+    pub(crate) fn offset(&self, fingerprint: u8) -> u32 {
         return (BUCKETS_PER_BLOCK + (fingerprint as u32 % OFF_RANGE)) | 1u32;
     }
 
